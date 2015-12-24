@@ -1,0 +1,12 @@
+[Unit]
+Description=OpenStack ceilometer alarm evaluation service
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=ceilometer
+ExecStart=/usr/bin/ceilometer-alarm-evaluator --logfile /var/log/ceilometer/alarm-evaluator.log
+
+[Install]
+WantedBy=multi-user.target
+

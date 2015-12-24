@@ -1,0 +1,12 @@
+[Unit]
+Description=HGPlatform
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/local/bin/HGPlatform start
+ExecReload=/usr/local/bin/HGPlatform restart
+ExecStop=/usr/local/bin/HGPlatform stop
+
+[Install]
+WantedBy=multi-user.target

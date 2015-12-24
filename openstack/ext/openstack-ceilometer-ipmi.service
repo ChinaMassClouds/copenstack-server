@@ -1,0 +1,12 @@
+[Unit]
+Description=OpenStack ceilometer ipmi agent
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=ceilometer
+ExecStart=/usr/bin/ceilometer-agent-ipmi --logfile /var/log/ceilometer/agent-ipmi.log
+
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Control Center" %}{% endblock %}
+
+{% block page_header %}
+  {% include "horizon/common/_page_header.html" with title=_("Control Center") %}
+{% endblock page_header %}
+
+{% block main %}
+  <div id="source-domain">
+      {{ source_domain_table.render }}
+  </div>
+
+  <div id="heterogeneous-plat">
+      {{ heterogeneous_plat_table.render }}
+  </div>
+{% endblock %}

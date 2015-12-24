@@ -1,0 +1,16 @@
+#!/bin/bash
+
+source /etc/dhcp_config
+
+echo "set the /etc/dhcp/dhcpd.conf"
+sed -i "s/subnet .* netmask .*/subnet $THIS_NETWORK_SEGMENT netmask $THIS_HOST_MASK {/g" /etc/dhcp/dhcpd.conf
+
+sed -i "s/range dynamic-bootp.*$/range dynamic-bootp        $DHCP_BEGIN_RANGE $DHCP_END_RANGE;/g" /etc/dhcp/dhcpd.conf
+
+sed -i "s/option routers.*$/option routers             $THIS_HOST_ROUTER;/g" /etc/dhcp/dhcpd.conf
+
+sed -i "s/option domain-name-servers.*$/option domain-name-servers $THIS_HOST_DNS;/g" /etc/dhcp/dhcpd.conf
+
+systemctl start dhcpd
+systemctl status dhcpd
+systemctl stop dhcpd

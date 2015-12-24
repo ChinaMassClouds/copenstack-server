@@ -1,0 +1,729 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        
+        <title>管理中心</title>
+        
+        <link href="/static/css/cplatform.css" rel="stylesheet">
+        
+        <script src="/static/js/jquery-1.11.0.min.js"></script>
+        <script src="/static/js/jquery-form.js"></script>
+        <script src="/static/js/jquery.validate.min.js"></script>
+		<script src="/static/js/webuploader.html5only.js"></script>
+        <script type="text/javascript" src="/static/js/cplatform.js"></script>
+    </head>
+    
+    <body>
+    	<input type="hidden" id="to_new" value="{{ to_new }}">
+    	<input type="hidden" id="dhcpIsActive" value="{{ dhcpIsActive }}">
+    	
+    	{% include "pieces/node.html" %}
+    	{% include "pieces/node_eth.html" %}
+    	{% include "pieces/node_disk.html" %}
+    	{% include "pieces/wait.html" %}
+    	{% include "pieces/uploading.html" %}
+    
+    	<!--顶部header信息 -->
+        <div class="baseLogo">
+        	<div class="fr" style="padding-top: 15px;">
+        		<ul class="items clearfix">
+        			<li class="title_item">
+        			<span class="account"></span>
+        			<a href="#" class="message">{{ request.user }}</a>
+        			</li>
+
+        			<li class="title_item about_item">
+        			<span class="about"></span>
+        			<a href="#" class="message">关于</a></li>
+        			<li class="title_item logout_item">
+        			<span class="logout"></span>
+        			<a href="#" class="message">注销</a></li>
+        		</ul>
+        	</div>
+        </div>
+        <!--显示区域主要内容-->
+        <div class="content">
+			<div class="content_title">
+				<h3 class="name">{{ env_name }}&nbsp;(&nbsp;<font id="node_num"></font>&nbsp;个节点&nbsp;)</h3>
+				&nbsp;&nbsp;&nbsp;&nbsp;
+				<i class="deployStatus" ></i>
+				<span class="del_env">删除环境</span>
+				<span class="deploy_change">部署变更</span>
+			</div>
+
+			<div class="content_main">
+				<!--切换标签-->
+				<ul class="tab">
+					<li class="node active">节点</li>
+					<li class="net">网络</li>
+					<li class="setup">设置</li>
+					<li class="log">日志</li>
+					<li class="upgrade">升级</li>
+					<li class="license">授权</li>
+				</ul>
+
+				<div class="main_wrapper">
+					<!--节点内容-->
+					<div class="node_content">
+						<div class="oper_area">
+							<span class="find_node setup_btn">发现节点</span>
+							<span class="open_dhcp setup_btn" style="display:none">打开DHCP</span>
+							<span class="close_dhcp setup_btn" style="display:none">关闭DHCP</span>
+						</div>
+
+						<div class="node_content_main">
+							<div class="no_node">暂无节点。</div>
+							<div class="left">
+								<ul class="node_list"></ul>
+								<div class="page_area">
+									<span class="ellipsis hid">...</span>
+									<span class="last">上一页</span>
+									<span class="next">下一页</span>
+									<span class="total">共<i id="totalPageNum"></i>页</span>
+									<span class="to_page">到第<input type="text">页</span>
+									<span class="confirm"><input type="button" value="确定"></span>
+								</div>
+							</div>
+							<div class="right main_item">
+								<ul class="clearfix">
+									<li>
+									<a href="##" class="icon" data-val="Controller"></a>
+									<span class="title">Controller</span>
+									<div class="message">
+										<span class="tip">控制节点启动业务流程活动、并提供外部接口</span>
+									</div>
+									</li>
+									<li>
+									<a href="##" class="icon" data-val="Compute"></a>
+									<span class="title">Compute</span>
+									<div class="message">
+										<span class="tip">计算节点创建、管理和终止虚拟机实例。</span>
+									</div>
+									</li>
+									<li>
+									<a href="##" class="icon" data-val="Database"></a>
+									<span class="title">Database</span>
+									<div class="message">
+										<span class="tip">提供数据库服务及相关接口。</span>
+									</div>
+									</li>
+									<li>
+									<a href="##" class="icon" data-val="RabbitMQ"></a>
+									<span class="title">RabbitMQ</span>
+									<div class="message">
+										<span class="tip"> 处理消息验证、消息转换和消息路由，协调应用程序之间的信息通信。</span>
+									</div>
+									</li>
+									<li>
+									<a href="##" class="icon" data-val="Neutron"></a>
+									<span class="title">Neutron</span>
+									<div class="message">
+										<span class="tip">提供网络服务，将网络、子网、端口和路由器抽象化。</span>
+									</div>
+									</li>
+									<li>
+									<a href="##" class="icon" data-val="Storage-Cinder"></a>
+									<span class="title">Storage-Cinder</span>
+									<div class="message">
+										<span class="tip">cinder通过iSCSI和其他兼容的后端存储系统提供块存储资源的调度。块存储可用于数据库存储</span>
+									</div>
+									</li>
+								</ul>
+
+							</div>
+						</div>
+						<div class="clearfix"></div>
+					</div>
+					<!--网络内容-->
+					<div class="net_content" style="display:none;">
+						<form id="net_content_form" method="post" action="submit.html" onsubmit="return false;">
+								<input type="hidden" name="networktype">
+								<div class="oper_area">
+<!-- 									<span class="cancel_setup setup_btn">取消设置</span> -->
+									<span class="save_setup setup_btn">保存设置</span>
+								</div>
+								<div class="dl">
+									<div class="dt">
+									<span>管理网络</span></div>
+									<div class="dd">
+										<ul>
+											<li>
+												<label for="cidr1">CIDR</label>
+												<input type="text" id="cidr1" name="manage_cidr" class="required regexp_ipaddresswithmask">
+												<span class="error_message"></span>
+											</li>
+											<li>
+												<label for="ip_range1">IP Range</label>
+												<input type="text" id="ip_range1" name="manage_ipstart" class="ip_range_min required regexp_ipaddress" >
+												至
+												<input type="text" class="ip_range_max1 required regexp_ipaddress" name="manage_ipend" >
+												<span class="error_message"></span>
+											</li>
+											<li>
+												<label for="gateway1">gateway</label>
+												<input type="text" id="gateway1" name="manage_gateway" class="required regexp_ipaddress">
+												<span class="error_message"></span>
+											</li>
+											<li>
+												<label for="dns1">DNS</label>
+												<input type="text" name="manage_dns" class="required regexp_ipaddress">
+												<span class="add_icon"></span>
+												<span class="error_message"></span>
+											</li>
+										</ul>
+									</div>
+								</div>
+
+								<div class="dl">
+									<div class="dt">
+									<span>存储网络</span></div>
+									<div class="dd">
+										<ul>
+											<li>
+												<label for="cidr2">CIDR</label>
+												<input type="text" id="cidr2" name="storage_cidr" class="regexp_ipaddresswithmask">
+												<span class="error_message"></span>
+											</li>
+											<li>
+												<label for="gateway2">gateway</label>
+												<input type="text" id="gateway2" name="storage_gateway" class="regexp_ipaddress">
+												<span class="error_message"></span>
+											</li>
+											<li>
+												<label for="dns2">DNS</label>
+												<input type="text" name="storage_dns" class="regexp_ipaddress">
+												<span class="add_icon"></span>
+												<span class="error_message"></span>
+											</li>
+										</ul>
+									</div>
+								</div>	
+
+								<div class="dl">
+									<div class="dt">
+									<span>数据网络</span></div>
+								</div>	
+
+								<div class="dl">
+									<div class="dt" >
+									<span>gre网络</span>
+									</div>
+									<div class="dd">
+										<ul>
+											<li>
+												<label for="cidr4">CIDR</label>
+												<input type="text" id="cidr4" name="gre_cidr" class="regexp_ipaddresswithmask">
+												<span class="error_message"></span>
+											</li>
+										</ul>
+									</div>
+								</div>
+
+								<div class="dl">
+								<div class="dt" >
+								<span>vlan网络</span>
+								</div>
+								<div class="dd">
+									<ul>
+										<li>
+											<label for="vlan5">VLAN ID range</label>
+											<input type="text" id="vlan5" name="vlan_ipstart" class="regexp_integer">
+											至
+											<input type="text" name="vlan_ipend" class="regexp_integer">
+											<span class="error_message"></span>
+										</li>
+										<li>
+											<label for="cidr5">CIDR</label>
+											<input type="text" id="cidr5" name="vlan_cidr" class="cidr5 regexp_ipaddresswithmask">
+											<span class="error_message"></span>
+										</li>
+									</ul>
+								</div>
+								</div>
+
+								<div class="dl">
+								<div class="dt" >
+								<span>vxlan网络</span>
+								</div>
+								<div class="dd">
+									<ul>
+										<li>
+											<label for="vxlan6_min">VXLAN ID range</label>
+											<input type="text" id="vxlan6_min" name="vxlan_ipstart" class="vxlan6 regexp_integer">
+											至
+											<input type="text" name="vxlan_ipend" class="ip_range_max regexp_integer">
+											<span class="error_message"></span>
+										</li>
+										<li>
+											<label for="cidr6">CIDR</label>
+											<input type="text"  id="cidr6" name="vxlan_cidr" class="regexp_ipaddresswithmask">
+											<span class="error_message"></span>
+										</li>
+									</ul>
+								</div>
+								</div>
+							</form>
+					</div>
+					<!--设置内容-->
+					<div class="setup_content" style="display:none;">
+						<form id="setup_content_form" action="submit.html" onsubmit="return false;">
+							<div class="oper_area">
+<!-- 								<span class="cancel_setup setup_btn">取消设置</span> -->
+								<span class="save_setup setup_btn">保存设置</span>
+							</div>
+							<div class="dl">
+								<div class="dt">
+								<span>名称</span></div>
+								<div class="dd">
+									<ul>
+										<li>
+											<label for="setup_name">名称</label>
+											<input type="text" id="setup_name" name="setup_name">
+											<span class="error_message"></span>
+										</li>
+									</ul>
+								</div>
+							</div>
+
+							<div class="dl">
+								<div class="dt">
+								<span>修改密码</span></div>
+								<div class="dd">
+									<ul>
+										<li>
+											<label for="old_pwd">旧密码</label>
+											<input type="password" id="old_pwd" name="old_pwd">
+											<span class="error_message"></span>
+										</li>
+										<li>
+											<label for="new_pwd">新密码</label>
+											<input type="password" id="new_pwd" name="new_pwd">
+											<span class="error_message"></span>
+										</li>
+										<li>
+											<label for="confirm_pwd">确认新密码</label>
+											<input type="password" id="confirm_pwd" name="confirm_pwd">
+											<span class="error_message"></span>
+										</li>
+									</ul>
+								</div>
+							</div>
+
+							<div class="dl main_item deploy_mode">
+								<div class="dt">
+								<span>部署模式</span></div>
+								<div class="dd">
+									<ul>
+										<li>
+											<span class="icon selected"></span>
+											<span class="title">多节点</span>
+											<div class="message">
+												<span class="tip">控制节点、计算节点、网络节点等分布部署</span>
+											</div>
+										</li>
+										<li>
+											<span class="icon disable"></span>
+											<span class="title">HA多节点</span>
+											<div class="message">
+												<span class="tip">控制节点、计算节点、网络节点采用高可用（HA）模式部署</span>
+											</div>
+										</li>
+
+									</ul>
+								</div>
+							</div>
+
+							<div class="dl main_item takeover_platform">
+								<div class="dt">
+								<span>接管平台</span></div>
+								<div class="dd">
+									<ul class="clearfix">
+										<li class="cdesktop">
+										<span class="icon disable"></span>
+										<span class="title">cDesktop</span>
+										<div class="message">
+											<span class="tip">如果已部署CDesktop环境，请选择此项</span>
+										</div>
+										</li>
+										<li class="cserver">
+											<span class="icon"></span>
+											<span class="title">cServer</span>
+											<div class="message">
+												<span class="tip">如果已部署cServer环境，请选择此项</span>
+											</div>
+										</li>
+										<li class="vcenter">
+											<span class="icon"></span>
+											<span class="title">vCenter</span>
+											<div class="message">
+												<span class="tip">如果已部署vCenter环境，请选择此项</span>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+
+							<div class="dl main_item network">
+								<div class="dt">
+								<span>网络</span></div>
+								<div class="dd">
+									<ul class="clearfix">
+										<li class="gre">
+											<span class="icon selected" data-val="gre"></span>
+											<span class="title">Neutron GRE</span>
+											<div class="message">
+												<span class="tip">网络设备必须配置GRE分割。该模式支持最大网络数是65535。</span>
+											</div>
+										</li>
+										<li class="vlan">
+											<span class="icon" data-val="vlan"></span>
+											<span class="title">Neutron VLAN</span>
+											<div class="message">
+												<span class="tip">网络设备必须配置VLAN分割。该模式支持最大网络数是4095。</span>
+											</div>
+										</li>
+										<li class="vxlan">
+											<span class="icon" data-val="vxlan"></span>
+											<span class="title">Neutron VXLAN</span>
+											<div class="message">
+												<span class="tip">能够满足大规模云计算数据中心的需求</span>
+											</div>
+										</li>
+									</ul>
+								</div>
+							</div>
+
+							<div class="dl main_item storage">
+								<div class="dt">
+								<span>存储</span></div>
+								<div class="dd">
+									<ul class="items clearfix">
+										<li class="item">
+											<span class="dt">虚机实例</span>
+											<ul class="subitems clearfix vminstance">
+												<li class="subitem"><span class="icon" data-val="local"></span><span>计算节点本地</span></li>
+												<li class="subitem"><span class="icon selected" data-val="nfs"></span><span>NFS</span></li>
+												<li class="subitem"><span class="icon disable" data-val="fc-san"></span><span>FC-SAN</span></li>
+												<li class="subitem"><span class="icon disable" data-val="ceph"></span><span>Ceph</span></li>
+											</ul>
+										</li>
+										<li class="item">
+											<span class="dt">虚机镜像</span>
+											<ul class="subitems clearfix vmimage">
+												<li class="subitem"><span class="icon" data-val="local"></span><span>控制节点本地</span></li>
+												<li class="subitem"><span class="icon disable" data-val="ceph"></span><span>Ceph</span></li>
+											</ul>
+										</li>
+										<li class="item">
+											<span class="dt">用户磁盘</span>
+											<ul class="subitems clearfix userdisk">
+												<li class="subitem"><span class="icon" data-val="local"></span><span>存储节点</span></li>
+												<li class="subitem"><span class="icon disable" data-val="ceph"></span><span>Ceph</span></li>
+											</ul>
+										</li>
+									</ul>
+								</div>
+							</div>
+						</form>
+					</div>
+					<!--日志内容-->
+					<div class="log_content" style="display:none;">
+						<textarea style="display:none;" readonly></textarea>
+					</div>
+					<!--升级-->
+					<div class="upgrade_content" style="display:none;">
+						<div class="dt">基础升级</div>
+						<span class="btn" id="basic_upload">上传</span>
+<!-- 						<span class="btn" id="basic_del">删除</span> -->
+						<span class="btn" id="basic_upgrade">升级</span>
+						<div id="file_basic"></div>
+						<table class="file_basic_list">
+							<tr>
+							</tr>
+						</table>
+						
+						<div class="dt">组件升级</div>
+						<span class="btn" id="unit_upload">上传</span>
+						<span class="btn" id="unit_del">删除</span>
+						<span class="btn" id="unit_upgrade">升级</span>
+						<div id="file_unit"></div>
+						<table class="file_unit_list">
+							<tr>
+								<td>
+									<input type="checkbox" name="checkall">
+								</td>
+								<td>文件名称</td>
+								<td>操作</td>
+							</tr>
+						</table>
+					</div>
+					
+					<!--授权-->
+					{% include "pieces/license.html" %}
+				</div>
+
+			</div>
+
+			
+        </div>
+		<!--footer底部区域-->
+		<div class="footer">
+			
+		</div>
+		
+		<!-- 上传授权文件的弹出层 -->
+		{% include "pieces/upd_license.html" %}
+		
+		<!--节点设置的弹出层-->
+		<div class="overlay config_div" style="display:none;">
+			<div class="config_wrapper">
+				<div class="header">
+					<div class="config_wrapper_title">
+						配置
+					</div>
+					<a href="#" class="close_btn">
+					X
+					</a>
+				</div>
+				<div class="content">
+					<div class="config_area">
+						<div class="config_title">网络设置</div>
+						<div class="config_content">
+							<ul class="net_nodes"></ul>
+						</div>
+						<div class="config_title">磁盘设置</div>
+						<div class="config_content">
+							<ul class="disk_nodes">
+								
+							</ul>
+						</div>
+					</div>
+				</div>
+				<div class="content" style="display: none;">
+					<div class="config_area_ipset" >
+						
+					</div>
+				</div>
+				<div class="footer">
+					<div class="hr_1"></div>
+					<div class="oper_area">
+						<input type="hidden" class="node_name">
+						<input type="hidden" class="net_type">
+						<input type="hidden" class="node_role">
+						<span class="btn save">保存</span>
+						<span class="btn cancel">取消</span>
+						<span class="btn delete_node">删除节点</span>
+					</div>
+				</div>
+			</div>
+		</div>
+
+
+		<!--设置向导的弹出层-->
+		<div class="overlay guide_div">
+			<div class="guide">
+				<div class="guideWindow">
+					<div class="guideTitle">
+					<span class="title_message">新建云环境</span>
+					
+					</div>
+
+					<div class="guideStep">
+						<div class="guide_nav">
+							<ul>
+								<li class="item active" style="margin-top:15px;">
+								<span class="icon"></span>
+								<a href="#">名称</a>
+								</li>
+								<li class="item">
+								<span class="icon"></span>
+								<a href="#">部署模式</a>
+								</li>
+								<li class="item">
+								<span class="icon"></span>
+								<a href="#">接管平台</a>
+								</li>
+								<li class="item">
+								<span class="icon"></span>
+								<a href="#">数据网络</a>
+								</li>
+<!-- 								<li class="item"> -->
+<!-- 								<span class="icon"></span> -->
+<!-- 								<a href="#">管理网络</a> -->
+<!-- 								</li> -->
+								<li class="item">
+								<span class="icon"></span>
+								<a href="#">存储</a>
+								</li>
+								<li class="item">
+								<span class="icon"></span>
+								<a href="#">完成</a>
+								</li>
+							</ul>
+						</div>
+
+						<div class="guide_main">
+							<div class="main_item">
+								<label class="label" for="colud_evn_name">名称</label>
+								<div class="message">
+									<input class="input_text" type="text" id="colud_evn_name">
+									<span class="tip" style="top: -10px;">该名称将作为云环境的名称</span>
+								</div>
+
+							</div>
+
+							<div class="main_item deploy_mode" style="display:none;">
+								<ul class="clearfix">
+									<li class="multi_node">
+										<a href="#" class="icon selected" data-val="multimode"></a>
+										<span class="title">多节点</span>
+										<div class="message">
+											<span class="tip">控制节点、计算节点、网络节点等分布部署</span>
+										</div>
+									</li>
+									<li class="ha_node">
+										<a href="#" class="icon disable" data-val="hamultinode"></a>
+										<span class="title">HA多节点</span>
+										<div class="message">
+											<span class="tip">控制节点、计算节点、网络节点采用高可用（HA）模式部署</span>
+										</div>
+									</li>
+								</ul>
+							</div>
+							
+							<div class="main_item takeover_platform" style="display:none;">
+								<ul class="clearfix">
+									<li class="cdesktop">
+									<a href="#" class="icon disable" data-val="cdesktop"></a>
+									<span class="title">cDesktop</span>
+									<div class="message">
+										<span class="tip">如果已部署CDesktop环境，请选择此项</span>
+									</div>
+									</li>
+									<li class="cserver">
+										<a href="#" class="icon selected" data-val="cserver"></a>
+										<span class="title">cServer</span>
+										<div class="message">
+											<span class="tip">如果已部署cServer环境，请选择此项</span>
+										</div>
+									</li>
+									<li class="vcenter">
+										<a href="#" class="icon selected" data-val="vcenter"></a>
+										<span class="title">vCenter</span>
+										<div class="message">
+											<span class="tip">如果已部署vCenter环境，请选择此项</span>
+										</div>
+									</li>
+								</ul>
+
+							</div>
+
+							<div class="main_item network" style="display:none;">
+								<ul class="clearfix">
+									<li class="gre">
+										<a href="#" class="icon selected" data-val="gre"></a>
+										<span class="title">Neutron GRE</span>
+										<div class="message">
+											<span class="tip">网络设备必须配置GRE分割。该模式支持最大网络数是65535。</span>
+										</div>
+									</li>
+									<li class="vlan">
+										<a href="#" class="icon" data-val="vlan"></a>
+										<span class="title">Neutron VLAN</span>
+										<div class="message">
+											<span class="tip">网络设备必须配置VLAN分割。该模式支持最大网络数是4095。</span>
+										</div>
+									</li>
+									<li class="vxlan">
+										<a href="#" class="icon" data-val="vxlan"></a>
+										<span class="title">Neutron VXLAN</span>
+										<div class="message">
+											<span class="tip">能够满足大规模云计算数据中心的需求</span>
+										</div>
+									</li>
+								</ul>
+							</div>
+
+
+<!-- 							<div class="main_item manage_network" style="display:none;"> -->
+<!-- 								<form id="guide_network_form"> -->
+<!-- 									<ul class="clearfix"> -->
+<!-- 										<li> -->
+<!-- 											<label for="cidr1">CIDR</label> -->
+<!-- 											<input type="text" id="cidr1" name="cidr1" > -->
+<!-- 											<span class="error_message"></span> -->
+<!-- 										</li> -->
+<!-- 										<li> -->
+<!-- 											<label for="ip_range1">IP Range</label> -->
+<!-- 											<input type="text" id="ip_range1" name="ip_range1" class="ip_range_min" > -->
+<!-- 											至 -->
+<!-- 											<input type="text" class="ip_range_max1" id="ip_range_max1" name="ip_range_max1" > -->
+<!-- 											<span class="error_message"></span> -->
+<!-- 										</li> -->
+<!-- 										<li> -->
+<!-- 											<label for="gateway1">gateway</label> -->
+<!-- 											<input type="text" id="gateway1" name="gateway1"> -->
+<!-- 											<span class="error_message"></span> -->
+<!-- 										</li> -->
+<!-- 										<li> -->
+<!-- 											<label for="dns1">DNS</label> -->
+<!-- 											<input type="text"  id="dns1" name="dns1" > -->
+<!-- 											<span class="error_message"></span> -->
+<!-- 										</li> -->
+<!-- 									</ul> -->
+<!-- 								</form> -->
+<!-- 							</div> -->
+							
+							<div class="main_item storage" style="display:none;">
+								
+								<ul class="items clearfix">
+									<li class="item">
+										<span class="dt">虚机实例</span>
+										<ul class="subitems clearfix vminstance">
+											<li class="subitem"><a href="#" data-val="local" class="icon"></a><span>计算节点本地</span></li>
+											<li class="subitem"><a href="#" data-val="nfs" class="icon selected"></a><span>NFS</span></li>
+											<li class="subitem"><a href="#" data-val="fc-san" class="icon disable"></a><span>FC-SAN</span></li>
+											<li class="subitem"><a href="#" data-val="ceph" class="icon disable"></a><span>Ceph</span></li>
+										</ul>
+									</li>
+									<li class="item">
+										<span class="dt">虚机镜像</span>
+										<ul class="subitems clearfix vmimage">
+											<li class="subitem"><a href="#" data-val="local" class="icon selected"></a><span>控制节点本地</span></li>
+											<li class="subitem"><a href="#" data-val="ceph" class="icon disable"></a><span>Ceph</span></li>
+										</ul>
+									</li>
+									<li class="item">
+										<span class="dt">用户磁盘</span>
+										<ul class="subitems clearfix userdisk">
+											<li class="subitem"><a href="#" data-val="local" class="icon selected"></a><span>存储节点</span></li>
+											<li class="subitem"><a href="#" data-val="ceph" class="icon disable"></a><span>Ceph</span></li>
+										</ul>
+									</li>
+								</ul>
+							</div>
+
+							<div class="main_item finish" style="display:none;">
+								<div style="color: #696969;">
+									部署准备就绪！请选择新建，完成新建云环境。
+								</div>
+							</div>
+
+						</div>
+					</div>
+
+					<div class="hr_1"></div>
+
+					<div class="guideBottom">
+						<div class="guide_bottom_btn">
+							<div class="btn back"></div>
+							<div class="btn next"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+    </body>
+</html>
+

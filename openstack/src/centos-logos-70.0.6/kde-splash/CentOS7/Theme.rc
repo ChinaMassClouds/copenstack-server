@@ -1,0 +1,8 @@
+[KSplash Theme: CentOS7]
+Name = CentOS7
+Description = Community Enterprise Operating System 7 Theme
+Version = 7.0
+Author = The CentOS Project
+Homepage = http://www.centos.org/
+
+Engine = KSplashX

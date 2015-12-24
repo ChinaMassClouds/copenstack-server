@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE greeter SYSTEM "greeter.dtd">
+
+<!--
+KDM Theme 0.2
+Copyright 2011-2013 Than Ngo <than@redhat.com>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation; either version 2 of 
+the License, or (at your option) any later version.            
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of 
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the   
+GNU General Public License for more details.                   
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<greeter id="theme">
+  <style font="Sans 12" window-text-color="#b0b0b0"
+         base-color="#ffffff" alternate-base-color="#666666"
+         text-color="#000000" disabled-text-color="#111111"/>
+  <item type="pixmap" id="background" background="true">
+    <normal wallpaper="RHEL7"/>
+    <pos anchor="c" x="50%" y="50%" width="100%" height="100%"/>
+  </item>
+  <item type="rect" id="loginbox">
+    <pos anchor="c" x="50%" y="50%" width="100%" height="220"/>
+    <fixed>
+      <item type="pixmap">
+        <normal file="box.png"/>
+        <pos width="100%" height="220"/>
+      </item>
+    </fixed>
+    <box orientation="horizontal" spacing="100" xpadding="10">
+      <item type="pixmap" id="logo">
+        <normal file="system-logo-white.png"/>
+        <pos anchor="w" x="10" y="50%" width="225" height="80"/>
+      </item>
+      <item type="rect" id="talker">
+        <pos anchor="e" x="-60" y="50%" width="box" height="box"/>
+        <box orientation="horizontal" spacing="6">
+          <box orientation="vertical" spacing="6">
+            <item type="label">
+              <pos anchor="w"/>
+              <stock type="username-label"/>
+            </item>
+            <item type="label">
+              <pos anchor="w"/>
+              <stock type="password-label"/>
+            </item>
+          </box>
+          <box orientation="vertical" spacing="6">
+            <item type="entry" id="user-entry">
+              <pos anchor="e" width="160" height="24"/>
+            </item>
+            <item type="entry" id="pw-entry">
+              <pos anchor="e" width="160" height="24"/>
+            </item>
+          </box>
+        </box>
+      </item>
+    </box>
+  </item>
+  <item type="rect">
+    <pos anchor="e" x="-22" y="50%" width="box" height="box"/>
+    <box orientation="vertical" spacing="6">
+      <item type="rect" id="session_button" button="true">
+        <pos anchor="e" x="-0" y="50%" width="box" height="box"/>
+        <box orientation="horizontal" spacing="15">
+          <item type="label">
+            <normal color="#b0b0b0" font="Sans 12"/>
+            <prelight color="#ffffff" font="Sans 12"/>
+            <active color="#ffffff" font="Sans 12"/>
+            <pos anchor="e" x="-0" y="50%"/>
+            <stock type="session"/>
+          </item>
+          <item type="pixmap">
+            <normal file="session_button.png"/>
+            <prelight file="session_button-li.png"/>
+            <active file="session_button-li.png"/>
+            <pos anchor="e" x="-0" y="50%"/>
+          </item>
+        </box>
+      </item>
+      <item type="rect" id="system_button" button="true">
+        <show modes="console" type="system"/>
+        <pos anchor="e" x="-0" y="50%" width="box" height="box"/>
+        <box orientation="horizontal" spacing="15">
+          <item type="label">
+            <normal color="#b0b0b0" font="Sans 12"/>
+            <prelight color="#ffffff" font="Sans 12"/>
+            <active color="#ffffff" font="Sans 12"/>
+            <pos anchor="e" x="-0" y="50%"/>
+            <stock type="system"/>
+          </item>
+          <item type="pixmap">
+            <normal file="system_button.png"/>
+            <prelight file="system_button-li.png"/>
+            <active file="system_button-li.png"/>
+            <pos anchor="e" x="-0" y="50%"/>
+          </item>
+        </box>
+      </item>
+      <item type="rect">
+        <pos anchor="e" x="-0" y="50%" width="box" height="box"/>
+        <fixed>
+          <item type="label" id="clock">
+            <pos anchor="e" x="5" y="45"/>
+            <text>%c</text>
+          </item>
+        </fixed>
+      </item>
+    </box>
+  </item>
+  <item type="rect" id="welcome">
+    <pos anchor="n" x="50%" y="50%" width="100%" height="64"/>
+    <fixed>
+      <item type="label">
+        <pos anchor="n" x="50%" y="-155"/>
+        <normal font="Sans Bold 14"/>
+        <stock type="welcome-label"/>
+      </item>
+    </fixed>
+  </item>
+  <item type="rect" id="caps-lock-warning">
+    <pos anchor="n" x="50%" y="50%" width="100%" height="64"/>
+    <fixed>
+      <item type="label">
+        <pos anchor="n" x="50%" y="75"/>
+        <stock type="caps-lock-warning"/>
+      </item>
+    </fixed>
+  </item>
+  <item type="rect">
+    <pos anchor="n" x="50%" y="50%" width="100%" height="64"/>
+    <fixed>
+      <item type="label" id="pam-error">
+        <pos anchor="n" x="50%" y="45"/>
+        <text>%c</text>
+      </item>
+    </fixed>
+  </item>
+</greeter>

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Data Center" %}{% endblock %}
+
+{% block page_header %}
+  {% include "horizon/common/_page_header.html" with title=_("Data Center") %}
+{% endblock page_header %}
+
+{% block main %}
+  <div id="dbalarm">
+      {{ db_alarm_table.render }}
+  </div>
+
+  <div id="dbpolicy">
+      {{ db_policy_table.render }}
+  </div>
+{% endblock %}

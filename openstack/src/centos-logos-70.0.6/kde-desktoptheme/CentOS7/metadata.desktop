@@ -1,0 +1,16 @@
+[Desktop Entry]
+Name=CentOS7
+
+X-KDE-PluginInfo-Author=The CentOS Project
+X-KDE-PluginInfo-Name=CentOS7
+X-KDE-PluginInfo-Version=0.9
+X-KDE-PluginInfo-EnabledByDefault=true
+
+[Settings]
+FallbackTheme=default
+
+[Wallpaper]
+defaultWallpaperTheme=CentOS7
+defaultFileSuffix=.jpg
+defaultWidth=2560
+defaultHeight=1600

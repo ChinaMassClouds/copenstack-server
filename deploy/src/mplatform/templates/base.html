@@ -1,0 +1,27 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+        
+        <title>管理中心</title>
+        
+        <link href="/static/css/cplatform.css" rel="stylesheet">
+        
+        <script src="/static/js/jquery-1.11.0.min.js"></script>
+        <script src="/static/js/jquery-form.js"></script>
+        <script src="/static/js/js.cookie.js"></script>
+        <script src="/static/js/jquery.cookie.js"></script>
+        
+        
+        {% block script %}{% endblock %}
+    </head>
+    
+    <body>
+        <div class="baseLogo">
+        	<button class="topButton">环境</button>
+        	<button class="topButton">版本</button>
+        </div>
+        
+        {% block content %}{% endblock %}
+    </body>
+</html>

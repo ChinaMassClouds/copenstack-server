@@ -1,0 +1,31 @@
+#!/bin/bash
+
+#get config info
+source /etc/deploy_node_config
+
+USAGE_NEWORK_CARD_INDEX=`expr 1 + $NETWORK_CARD_INDEX`
+
+#get primary NIC info
+for i in $(ls /sys/class/net); do
+    NIC=$i
+    if [ "$NIC" == "lo" ];then continue; fi
+    MY_MAC=$(cat /sys/class/net/$i/address)
+    if [ "$(cat /sys/class/net/$i/ifindex)" == "$USAGE_NEWORK_CARD_INDEX" ]; then
+        #setup the IP configure for management NIC
+        if [ -e /etc/sysconfig/network-scripts/ifcfg-$NIC ]; then
+            sed -i "s/dhcp/static/g" /etc/sysconfig/network-scripts/ifcfg-$NIC
+            sed -i "s/ONBOOT=no/ONBOOT=yes/g" /etc/sysconfig/network-scripts/ifcfg-$NIC
+            sed  -i '/IPADDR=/d' /etc/sysconfig/network-scripts/ifcfg-$NIC
+            sed  -i '/NETMASK=/d' /etc/sysconfig/network-scripts/ifcfg-$NIC
+            sed  -i '/GATEWAY=/d' /etc/sysconfig/network-scripts/ifcfg-$NIC
+            sed  -i '/DNS1=/d' /etc/sysconfig/network-scripts/ifcfg-$NIC
+            echo "IPADDR=$THIS_HOST_IP" >> /etc/sysconfig/network-scripts/ifcfg-$NIC
+            echo "NETMASK=$THIS_HOST_NETMASK" >> /etc/sysconfig/network-scripts/ifcfg-$NIC
+            echo "GATEWAY=$THIS_HOST_GATEWAY" >> /etc/sysconfig/network-scripts/ifcfg-$NIC
+            echo "DNS1=$THIS_HOST_DNS" >> /etc/sysconfig/network-scripts/ifcfg-$NIC
+        fi
+    fi   
+done
+
+systemctl restart network
+systemctl status network

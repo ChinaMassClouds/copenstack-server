@@ -1,0 +1,24 @@
+{% load i18n branding %}
+<!DOCTYPE html>
+<html lang="en" xml:lang="en" class="login-rcue">
+  <head>
+    <meta content='text/html; charset=utf-8' http-equiv='Content-Type' />
+    <title>{% trans "Login" %} - {% site_branding %}</title>
+    {% include "_stylesheets.html" %}
+  </head>
+  <body id="splash">
+    <a href="http://www.redhat.com/" id="redhat">
+      <img src="/static/dashboard/img/logo.svg" alt="Red Hat" />
+    </a>
+    <div class="container">
+      <div class="row-fluid">
+        <div class="span12">
+          <div id="brand">
+            <img src="/static/dashboard/img/brand.svg">
+          </div><!--/#brand-->
+        </div><!--/.span*-->
+        {% include 'auth/_login.html' %}
+      </div><!--/.row-fluid-->
+    </div><!--/.container-->
+  </body>
+</html>

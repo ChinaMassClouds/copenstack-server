@@ -1,0 +1,27 @@
+{% extends "horizon/common/_modal_form.html" %}
+{% load i18n %}
+{% load url from future %}
+
+{% block form_id %}setmail_form{% endblock %}
+{% block form_action %}{% url 'horizon:admin:alarmpolicy:setmail' %}{% endblock %}
+
+{% block modal_id %}setmail_modal{% endblock %}
+{% block modal-header %}{% trans "Mail Settings" %}{% endblock %}
+
+{% block modal-body %}
+<div class="left">
+  <fieldset>
+  <input type="password" style="display:none">
+  {% include "horizon/common/_form_fields.html" %}
+  </fieldset>
+</div>
+<div class="right">
+  <h3>{% trans "Description" %}:</h3>
+  <p>{% trans "Set the mail server address and the sender informaton, so that we can alarm using email." %}</p>
+</div>
+{% endblock %}
+
+{% block modal-footer %}
+  <input class="btn btn-primary pull-right" type="submit" value="{% trans "Save" %}" />
+  <a href="{% url 'horizon:admin:alarmpolicy:index' %}" class="btn btn-default secondary cancel close">{% trans "Cancel" %}</a>
+{% endblock %}

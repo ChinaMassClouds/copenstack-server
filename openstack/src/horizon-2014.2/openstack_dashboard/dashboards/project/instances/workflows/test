@@ -1,0 +1,16 @@
+            api.nova.server_create(request,
+                                   context['name'],
+                                   image_id,
+                                   context['flavor'],
+                                   context['keypair_id'],
+                                   normalize_newlines(custom_script),
+                                   context['security_group_ids'],
+                                   block_device_mapping=dev_mapping_1,
+                                   block_device_mapping_v2=dev_mapping_2,
+                                   nics=nics,
+                                   availability_zone=avail_zone,
+                                   instance_count=int(context['count']),
+                                   admin_pass=context['admin_pass'],
+                                   disk_config=context.get('disk_config'),
+                                   config_drive=context.get('config_drive'))
+ 

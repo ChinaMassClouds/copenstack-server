@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load url from future %}
+{% block title %}{% trans "Logic Topo" %}{% endblock %}
+
+{% block page_header %}
+  {% include "horizon/common/_page_header.html" with title=_("Logic Topo")%}
+{% endblock page_header %}
+
+{% block main %}
+<div class="row">
+  <div class="col-sm-12" style="padding:0">
+
+<div style="width:100%;">
+	<div id="logic-topo" class="jtk-demo-canvas canvas-wide flowchart-demo jtk-surface jtk-surface-nopan" >
+	    {% for n in nodes %}
+		<div id="flowchart{{n.no}}" data-level="{{n.level}}" data-type="{{n.type}}" data-no="{{n.no}}" data-child="{{n.child}}"
+		title="{{n.name}}" style="position:absolute;width:60px;height:77px;
+			display:inline-block;text-align:center;padding-top:60px;
+			{% if n.level != 0 %}
+			overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+			{% endif %}
+			background:url(/static/dashboard/img/topo/{%if n.type == 'plat'%}{{n.name}}{%else%}{{n.type}}{%endif%}.png) no-repeat"  >
+			{{n.name}}
+		</div>
+		{% endfor %}
+	</div>
+</div>
+
+  </div>
+</div>
+<script type="text/javascript">
+if (typeof horizon.logic_topo !== 'undefined') {
+   	horizon.logic_topo.init();
+} else {
+   	addHorizonLoadEvent(function () {
+     	horizon.logic_topo.init();
+	});
+}
+</script>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Host" %}{% endblock %}
+
+{% block page_header %}
+  {% include "horizon/common/_page_header.html" with title=_("Host") %}
+{% endblock page_header %}
+
+{% block main %}
+  <div id="hostalarm">
+      {{ host_alarm_table.render }}
+  </div>
+
+  <div id="hostpolicy">
+      {{ host_policy_table.render }}
+  </div>
+{% endblock %}

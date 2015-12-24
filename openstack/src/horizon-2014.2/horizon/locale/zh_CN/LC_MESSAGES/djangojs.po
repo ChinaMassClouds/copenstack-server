@@ -1,0 +1,200 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# 
+# Translators:
+# Tom Fifield <tom@openstack.org>, 2014
+msgid ""
+msgstr ""
+"Project-Id-Version: Horizon\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-10-05 14:55+0000\n"
+"PO-Revision-Date: 2014-10-02 22:40+0000\n"
+"Last-Translator: openstackjenkins <jenkins@openstack.org>\n"
+"Language-Team: Chinese (China) (http://www.transifex.com/projects/p/horizon/language/zh_CN/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_CN\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: static/horizon/js/horizon.accordion_nav.js:83
+#: static/horizon/js/horizon.modals.js:309
+#: static/horizon/js/horizon.tabs.js:21
+msgid "Loading"
+msgstr "加载中"
+
+#: static/horizon/js/horizon.d3linechart.js:394
+#: static/horizon/js/horizon.d3linechart.js:404
+msgid "No data available."
+msgstr "没有可用数据"
+
+#: static/horizon/js/horizon.d3linechart.js:410
+#: static/horizon/js/horizon.modals.js:328
+#: static/horizon/js/horizon.tables_inline_edit.js:94
+#: static/horizon/js/horizon.tables_inline_edit.js:175
+msgid "An error occurred. Please try again later."
+msgstr "发生错误。请稍后重试。"
+
+#: static/horizon/js/horizon.firewalls.js:30
+#: static/horizon/js/horizon.instances.js:30
+msgid "There was a problem communicating with the server, please try again."
+msgstr "与服务器通信出现问题，请再试一次。"
+
+#: static/horizon/js/horizon.forms.js:195
+msgid "Filter"
+msgstr "筛选"
+
+#: static/horizon/js/horizon.instances.js:248
+msgid "Could not read the file"
+msgstr "不能读取文件"
+
+#: static/horizon/js/horizon.instances.js:254
+#: static/horizon/js/horizon.instances.js:281
+msgid "Could not decrypt the password"
+msgstr "不能解密密码"
+
+#: static/horizon/js/horizon.membership.js:190
+msgid "No roles"
+msgstr "不存在任何角色"
+
+#: static/horizon/js/horizon.membership.js:222
+msgid "Roles"
+msgstr "角色"
+
+#: static/horizon/js/horizon.messages.js:9
+msgid "Danger: "
+msgstr "危险"
+
+#: static/horizon/js/horizon.messages.js:10
+msgid "Warning: "
+msgstr "警告："
+
+#: static/horizon/js/horizon.messages.js:11
+msgid "Notice: "
+msgstr "注意"
+
+#: static/horizon/js/horizon.messages.js:12
+msgid "Success: "
+msgstr "成功："
+
+#: static/horizon/js/horizon.messages.js:13
+msgid "Error: "
+msgstr "错误："
+
+#: static/horizon/js/horizon.modals.js:33
+msgid "Cancel"
+msgstr "取消"
+
+#: static/horizon/js/horizon.modals.js:225
+#: static/horizon/js/horizon.tables.js:221
+msgid "Working"
+msgstr "进行中"
+
+#: static/horizon/js/horizon.modals.js:259
+msgid "There was an error submitting the form. Please try again."
+msgstr "在提交表单的时候出现错误，请再次尝试"
+
+#: static/horizon/js/horizon.networktopology.js:535
+msgid "STATUS"
+msgstr "状态"
+
+#: static/horizon/js/horizon.networktopology.js:536
+msgid "ID"
+msgstr "ID"
+
+#: static/horizon/js/horizon.networktopology.js:537
+msgid "Interfaces"
+msgstr "接口"
+
+#: static/horizon/js/horizon.networktopology.js:538
+msgid "Interface"
+msgstr "接口"
+
+#: static/horizon/js/horizon.networktopology.js:539
+msgid "open console"
+msgstr "打开控制台"
+
+#: static/horizon/js/horizon.networktopology.js:540
+#, c-format
+msgid "view %s details"
+msgstr "查看 %s 详情"
+
+#: static/horizon/js/horizon.networktopology.js:545
+msgid "Add Interface"
+msgstr "增加接口"
+
+#: static/horizon/js/horizon.tables.js:39
+#: static/horizon/js/horizon.tables.js:377
+msgid "No items to display."
+msgstr "没有条目显示。"
+
+#: static/horizon/js/horizon.tables.js:52
+#: static/horizon/js/horizon.tables.js:120
+msgid "An error occurred while updating."
+msgstr "更新时发生错误。"
+
+#: static/horizon/js/horizon.tables.js:204
+#, c-format
+msgid "You have selected %s. "
+msgstr "你已经选择了 %s 。 "
+
+#: static/horizon/js/horizon.tables.js:206
+#, c-format
+msgid "Confirm %s"
+msgstr "确认 %s"
+
+#: static/horizon/js/horizon.tables.js:207
+msgid "Please confirm your selection. This action cannot be undone."
+msgstr "请确认您的选择。这个动作不能撤消"
+
+#: static/horizon/js/horizon.tables.js:364
+#, c-format
+msgid "Displaying %s item"
+msgid_plural "Displaying %s items"
+msgstr[0] "显示%s个条目"
+
+#: static/horizon/js/horizon.tables_inline_edit.js:88
+#: static/horizon/js/horizon.tables_inline_edit.js:169
+msgid "Not authorized to do this operation."
+msgstr "未授权不能进行此操作"
+
+#: static/horizon/js/horizon.users.js:18
+msgid "Passwords do not match."
+msgstr "密码不匹配。"
+
+msgid "Name exists."
+msgstr "名称已存在"
+
+msgid "The entity is OK."
+msgstr "正常"
+
+msgid "The entity might have a problem."
+msgstr "该主机可能存在问题"
+
+msgid "The entity definitely has a problem."
+msgstr "该主机存在问题"
+
+msgid "The status is unknown."
+msgstr "未知状态"
+
+msgid "Error to get host or vm list."
+msgstr "获取主机或虚拟机列表出错。"
+
+msgid "Error to load disk usage."
+msgstr "获取硬盘使用情况出错。"
+
+msgid "Host"
+msgstr "主机"
+
+msgid "VM"
+msgstr "虚拟机"
+
+msgid "Untreated"
+msgstr "未处理"
+
+msgid "Treated"
+msgstr "已处理"
+
+msgid "Error to get monitor info."
+msgstr "查询监控信息出错。"

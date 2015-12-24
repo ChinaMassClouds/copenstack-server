@@ -1,0 +1,1131 @@
+# Copyright 2012 Nebula, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+
+import logging
+
+from django.conf import settings
+from django.core import urlresolvers
+from django.http import HttpResponse  # noqa
+from django import shortcuts
+from django import template
+from django.template.defaultfilters import title  # noqa
+from django.utils.http import urlencode
+from django.utils.translation import npgettext_lazy
+from django.utils.translation import pgettext_lazy
+from django.utils.translation import string_concat  # noqa
+from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import ungettext_lazy
+from horizon import conf
+from horizon import exceptions
+from horizon import messages
+from horizon import tables
+from horizon.templatetags import sizeformat
+from horizon.utils import filters
+from openstack_dashboard.openstack.common.log import policy_is
+
+from openstack_dashboard import api
+from openstack_dashboard.dashboards.project.access_and_security.floating_ips \
+    import workflows
+from openstack_dashboard.dashboards.project.instances import tabs
+from openstack_dashboard.dashboards.project.applyhost.workflows import resize_instance
+from openstack_dashboard.dashboards.project.instances.workflows \
+    import update_instance
+from openstack_dashboard import policy
+from openstack_dashboard.openstack.common.log import operate_log
+from openstack_dashboard.openstack.common.choices import CHOICES_VIRTUAL_TYPE
+from openstack_dashboard.openstack.common import choices
+from openstack_dashboard.openstack.common.requestapi import RequestApi,def_vcenter_vms,def_cserver_vms
+from openstack_dashboard.dashboards.admin.controlcenter import views as controlcenter_views
+
+LOG = logging.getLogger(__name__)
+
+ACTIVE_STATES = ("ACTIVE",)
+VOLUME_ATTACH_READY_STATES = ("ACTIVE", "SHUTOFF")
+SNAPSHOT_READY_STATES = ("ACTIVE", "SHUTOFF", "PAUSED", "SUSPENDED")
+
+POWER_STATES = {
+    0: "NO STATE",
+    1: "RUNNING",
+    2: "BLOCKED",
+    3: "PAUSED",
+    4: "SHUTDOWN",
+    5: "SHUTOFF",
+    6: "CRASHED",
+    7: "SUSPENDED",
+    8: "FAILED",
+    9: "BUILDING",
+}
+
+PAUSE = 0
+UNPAUSE = 1
+SUSPEND = 0
+RESUME = 1
+
+CHOICES_VIRTUAL_TYPE_NAME = [i[1] for i in CHOICES_VIRTUAL_TYPE]
+
+def is_deleting(instance):
+    task_state = getattr(instance, "OS-EXT-STS:task_state", None)
+    if not task_state:
+        return False
+    return task_state.lower() == "deleting"
+
+
+class TerminateInstance(policy.PolicyTargetMixin, tables.BatchAction):
+    name = "terminate"
+    classes = ("btn-danger",)
+    icon = "off"
+
+    @staticmethod
+    def action_present(count):
+        return ungettext_lazy(
+            u"Terminate Instance",
+            u"Terminate Instances",
+            count
+        )
+
+    @staticmethod
+    def action_past(count):
+        return ungettext_lazy(
+            u"Scheduled termination of Instance",
+            u"Scheduled termination of Instances",
+            count
+        )
+
+    def allowed(self, request, instance=None):
+        """Allow terminate action if instance not currently being deleted."""
+        if request.user.username in ['auditadmin','appradmin']:
+            return False
+        roles = request.user.roles
+        if len(roles)>=2:
+            role = roles[1]['name'] if roles[0]['name']=='_member_' else roles[0]['name']
+        else:
+            role = '_member_'
+        return  policy_is(request.user.username, 'admin', 'sysadmin') or role!='admin'
+
+    def action(self, request, obj_id):
+        try:
+            api.nova.server_delete(request, obj_id)
+            name = '-'
+            for row in self.table.data:
+                if row.id == obj_id:
+                    name = row.name
+            operate_log(request.user.username,
+                        request.user.roles,
+                        name + " instance delete")
+        except Exception:
+            exceptions.handle(request, _("Unable to delete instance."))
+
+
+
+class RebootInstance(policy.PolicyTargetMixin, tables.BatchAction):
+    name = "reboot"
+    classes = ('btn-danger', 'btn-reboot')
+    policy_rules = (("compute", "compute:reboot"),)
+
+    @staticmethod
+    def action_present(count):
+        return ungettext_lazy(
+            u"Hard Reboot Instance",
+            u"Hard Reboot Instances",
+            count
+        )
+
+    @staticmethod
+    def action_past(count):
+        return ungettext_lazy(
+            u"Hard Rebooted Instance",
+            u"Hard Rebooted Instances",
+            count
+        )
+
+    def allowed(self, request, instance=None):
+        if instance is not None:
+            return ((instance.status in ACTIVE_STATES
+                     or instance.status == 'SHUTOFF')
+                    and not is_deleting(instance))
+        else:
+            return True
+
+    def action(self, request, obj_id):
+        try:
+            api.nova.server_reboot(request, obj_id, soft_reboot=False)
+            name = '-'
+            for row in self.table.data:
+                if row.id == obj_id:
+                    name = row.name
+            operate_log(request.user.username,
+                        request.user.roles,
+                        name + " instance reboot")
+        except Exception as e:
+            LOG.error('Error to RebootInstance: %s' % str(e))
+
+class SoftRebootInstance(RebootInstance):
+    name = "soft_reboot"
+
+    @staticmethod
+    def action_present(count):
+        return ungettext_lazy(
+            u"Soft Reboot Instance",
+            u"Soft Reboot Instances",
+            count
+        )
+
+    @staticmethod
+    def action_past(count):
+        return ungettext_lazy(
+            u"Soft Rebooted Instance",
+            u"Soft Rebooted Instances",
+            count
+        )
+
+    def action(self, request, obj_id):
+        try:
+            api.nova.server_reboot(request, obj_id, soft_reboot=True)
+            name = '-'
+            for row in self.table.data:
+                if row.id == obj_id:
+                    name = row.name
+            operate_log(request.user.username,
+                        request.user.roles,
+                        name + " instance soft reboot")
+        except Exception as e:
+            LOG.error('Error to SoftRebootInstance: %s' % str(e))
+
+
+class TogglePause(tables.BatchAction):
+    name = "pause"
+    icon = "pause"
+
+    @staticmethod
+    def action_present(count):
+        return (
+            ungettext_lazy(
+                u"Pause Instance",
+                u"Pause Instances",
+                count
+            ),
+            ungettext_lazy(
+                u"Resume Instance",
+                u"Resume Instances",
+                count
+            ),
+        )
+
+    @staticmethod
+    def action_past(count):
+        return (
+            ungettext_lazy(
+                u"Paused Instance",
+                u"Paused Instances",
+                count
+            ),
+            ungettext_lazy(
+                u"Resumed Instance",
+                u"Resumed Instances",
+                count
+            ),
+        )
+
+    def allowed(self, request, instance=None):
+        if not api.nova.extension_supported('AdminActions',
+                                            request):
+            return False
+        if not instance:
+            return False
+        self.paused = instance.status == "PAUSED"
+        if self.paused:
+            self.current_present_action = UNPAUSE
+            policy = (("compute", "compute_extension:admin_actions:unpause"),)
+        else:
+            self.current_present_action = PAUSE
+            policy = (("compute", "compute_extension:admin_actions:pause"),)
+
+        has_permission = True
+        policy_check = getattr(settings, "POLICY_CHECK_FUNCTION", None)
+        if policy_check:
+            has_permission = policy_check(policy, request,
+                target={'project_id': getattr(instance, 'tenant_id', None)})
+
+        return (has_permission
+                and (instance.status in ACTIVE_STATES or self.paused)
+                and not is_deleting(instance))
+
+    def action(self, request, obj_id):
+        try:
+            if self.paused:
+                api.nova.server_unpause(request, obj_id)
+                self.current_past_action = UNPAUSE
+                name = '-'
+                for row in self.table.data:
+                    if row.id == obj_id:
+                        name = row.name
+                operate_log(request.user.username,
+                            request.user.roles,
+                            name + " instance unpause")
+            else:
+                api.nova.server_pause(request, obj_id)
+                self.current_past_action = PAUSE
+                name = '-'
+                for row in self.table.data:
+                    if row.id == obj_id:
+                        name = row.name
+                operate_log(request.user.username,
+                            request.user.roles,
+                            name + "instance pause")
+        except Exception as e:
+            LOG.error('Error to TogglePause: %s' % str(e))
+
+class ToggleSuspend(tables.BatchAction):
+    name = "suspend"
+    classes = ("btn-suspend",)
+
+    @staticmethod
+    def action_present(count):
+        return (
+            ungettext_lazy(
+                u"Suspend Instance",
+                u"Suspend Instances",
+                count
+            ),
+            ungettext_lazy(
+                u"Resume Instance",
+                u"Resume Instances",
+                count
+            ),
+        )
+
+    @staticmethod
+    def action_past(count):
+        return (
+            ungettext_lazy(
+                u"Suspended Instance",
+                u"Suspended Instances",
+                count
+            ),
+            ungettext_lazy(
+                u"Resumed Instance",
+                u"Resumed Instances",
+                count
+            ),
+        )
+
+    def allowed(self, request, instance=None):
+        if not api.nova.extension_supported('AdminActions',
+                                            request):
+            return False
+        if not instance:
+            return False
+        self.suspended = instance.status == "SUSPENDED"
+        if self.suspended:
+            self.current_present_action = RESUME
+            policy = (("compute", "compute_extension:admin_actions:resume"),)
+        else:
+            self.current_present_action = SUSPEND
+            policy = (("compute", "compute_extension:admin_actions:suspend"),)
+
+        has_permission = True
+        policy_check = getattr(settings, "POLICY_CHECK_FUNCTION", None)
+        if policy_check:
+            has_permission = policy_check(policy, request,
+                target={'project_id': getattr(instance, 'tenant_id', None)})
+
+        return (has_permission
+                and (instance.status in ACTIVE_STATES or self.suspended)
+                and not is_deleting(instance))
+
+    def action(self, request, obj_id):
+        try:
+            if self.suspended:
+                api.nova.server_resume(request, obj_id)
+                self.current_past_action = RESUME
+                name = '-'
+                for row in self.table.data:
+                    if row.id == obj_id:
+                        name = row.name
+                operate_log(request.user.username,
+                            request.user.roles,
+                            name + " instance resume")
+            else:
+                api.nova.server_suspend(request, obj_id)
+                self.current_past_action = SUSPEND
+                name = '-'
+                for row in self.table.data:
+                    if row.id == obj_id:
+                        name = row.name
+                operate_log(request.user.username,
+                            request.user.roles,
+                            name + " instance suspend")
+        except Exception as e:
+            LOG.error('Error to ToggleSuspend: %s' % str(e))
+
+
+class LaunchLink(tables.LinkAction):
+    name = "launch"
+    verbose_name = _("Launch Instance")
+    url = "horizon:project:instances:launch"
+    classes = ("ajax-modal", "btn-launch")
+    icon = "cloud-upload"
+    policy_rules = (("compute", "compute:create"),)
+    ajax = True
+
+    def __init__(self, attrs=None, **kwargs):
+        kwargs['preempt'] = True
+        super(LaunchLink, self).__init__(attrs, **kwargs)
+
+    def allowed(self, request, datum):
+        try:
+            limits = api.nova.tenant_absolute_limits(request, reserved=True)
+
+            instances_available = limits['maxTotalInstances'] \
+                - limits['totalInstancesUsed']
+            cores_available = limits['maxTotalCores'] \
+                - limits['totalCoresUsed']
+            ram_available = limits['maxTotalRAMSize'] - limits['totalRAMUsed']
+
+            if instances_available <= 0 or cores_available <= 0 \
+                    or ram_available <= 0:
+                if "disabled" not in self.classes:
+                    self.classes = [c for c in self.classes] + ['disabled']
+                    self.verbose_name = string_concat(self.verbose_name, ' ',
+                                                      _("(Quota exceeded)"))
+            else:
+                self.verbose_name = _("Launch Instance")
+                classes = [c for c in self.classes if c != "disabled"]
+                self.classes = classes
+        except Exception:
+            LOG.exception("Failed to retrieve quota information")
+            # If we can't get the quota information, leave it to the
+            # API to check  when launching
+        return policy_is(request.user.username, 'admin')
+
+    def single(self, table, request, object_id=None):
+        self.allowed(request, None)
+        return HttpResponse(self.render())
+
+
+class EditInstance(policy.PolicyTargetMixin, tables.LinkAction):
+    name = "edit"
+    verbose_name = _("Edit Instance")
+    url = "horizon:project:instances:update"
+    classes = ("ajax-modal",)
+    icon = "pencil"
+    policy_rules = (("compute", "compute:update"),)
+
+    def get_link_url(self, project):
+        return self._get_link_url(project, 'instance_info')
+
+    def _get_link_url(self, project, step_slug):
+        base_url = urlresolvers.reverse(self.url, args=[project.id])
+        next_url = self.table.get_full_url()
+        params = {"step": step_slug,
+                  update_instance.UpdateInstance.redirect_param_name: next_url}
+        param = urlencode(params)
+        return "?".join([base_url, param])
+
+    def allowed(self, request, instance):
+        return not is_deleting(instance)
+
+
+class EditInstanceSecurityGroups(EditInstance):
+    name = "edit_secgroups"
+    verbose_name = _("Edit Security Groups")
+
+    def get_link_url(self, project):
+        return self._get_link_url(project, 'update_security_groups')
+
+    def allowed(self, request, instance=None):
+        return (instance.status in ACTIVE_STATES and
+                not is_deleting(instance) and
+                request.user.tenant_id == instance.tenant_id)
+
+
+class CreateSnapshot(policy.PolicyTargetMixin, tables.LinkAction):
+    name = "snapshot"
+    verbose_name = _("Create Snapshot")
+    url = "horizon:project:images:snapshots:create"
+    classes = ("ajax-modal",)
+    icon = "camera"
+    policy_rules = (("compute", "compute:snapshot"),)
+
+    def allowed(self, request, instance=None):
+        return instance.status in SNAPSHOT_READY_STATES \
+            and not is_deleting(instance) \
+            and getattr(instance, 'virtualplatformtype','') \
+            and instance.virtualplatformtype not in CHOICES_VIRTUAL_TYPE_NAME
+
+
+class ConsoleLink(policy.PolicyTargetMixin, tables.LinkAction):
+    name = "console"
+    verbose_name = _("Console")
+    url = "horizon:project:instances:detail"
+    classes = ("btn-console",)
+    policy_rules = (("compute", "compute_extension:consoles"),)
+
+    def allowed(self, request, instance=None):
+        # We check if ConsoleLink is allowed only if settings.CONSOLE_TYPE is
+        # not set at all, or if it's set to any value other than None or False.
+        return bool(getattr(settings, 'CONSOLE_TYPE', True)) and \
+            instance.status in ACTIVE_STATES and not is_deleting(instance)
+
+
+    def get_link_url(self, datum):
+        base_url = super(ConsoleLink, self).get_link_url(datum)
+        tab_query_string = tabs.ConsoleTab(
+            tabs.InstanceDetailTabs).get_query_string()
+        return "?".join([base_url, tab_query_string])
+
+
+class LogLink(policy.PolicyTargetMixin, tables.LinkAction):
+    name = "log"
+    verbose_name = _("View Log")
+    url = "horizon:project:instances:detail"
+    classes = ("btn-log",)
+    policy_rules = (("compute", "compute_extension:console_output"),)
+
+    def allowed(self, request, instance=None):
+        return instance.status in ACTIVE_STATES and not is_deleting(instance)
+
+    def get_link_url(self, datum):
+        base_url = super(LogLink, self).get_link_url(datum)
+        tab_query_string = tabs.LogTab(
+            tabs.InstanceDetailTabs).get_query_string()
+        return "?".join([base_url, tab_query_string])
+
+
+class ResizeLink(policy.PolicyTargetMixin, tables.LinkAction):
+    name = "resize"
+    verbose_name = _("Resize Instance")
+    url = "horizon:project:instances:resize"
+    classes = ("ajax-modal", "btn-resize")
+    policy_rules = (("compute", "compute:resize"),)
+
+    def get_link_url(self, project):
+        return self._get_link_url(project, 'flavor_choice')
+
+    def _get_link_url(self, project, step_slug):
+        base_url = urlresolvers.reverse(self.url, args=[project.id])
+        next_url = self.table.get_full_url()
+        params = {"step": step_slug,
+                  resize_instance.ResizeInstance.redirect_param_name: next_url}
+        param = urlencode(params)
+        return "?".join([base_url, param])
+
+    def allowed(self, request, instance):
+        return ((instance.status in ACTIVE_STATES
+                 or instance.status == 'SHUTOFF')
+                and not is_deleting(instance))
+
+
+class ConfirmResize(policy.PolicyTargetMixin, tables.Action):
+    name = "confirm"
+    verbose_name = _("Confirm Resize/Migrate")
+    classes = ("btn-confirm", "btn-action-required")
+    policy_rules = (("compute", "compute:confirm_resize"),)
+
+    def allowed(self, request, instance):
+        return instance.status == 'VERIFY_RESIZE'
+
+    def single(self, table, request, instance):
+        api.nova.server_confirm_resize(request, instance)
+
+        operate_log(request.user.username,
+                    request.user.roles,
+                    instance.name + " instance confirm resize")
+
+
+class RevertResize(policy.PolicyTargetMixin, tables.Action):
+    name = "revert"
+    verbose_name = _("Revert Resize/Migrate")
+    classes = ("btn-revert", "btn-action-required")
+    policy_rules = (("compute", "compute:revert_resize"),)
+
+    def allowed(self, request, instance):
+        return instance.status == 'VERIFY_RESIZE'
+
+    def single(self, table, request, instance):
+        api.nova.server_revert_resize(request, instance)
+        operate_log(request.user.username,
+                    request.user.roles,
+                    instance.name + " instance revert resize")
+
+class RebuildInstance(policy.PolicyTargetMixin, tables.LinkAction):
+    name = "rebuild"
+    verbose_name = _("Rebuild Instance")
+    classes = ("btn-rebuild", "ajax-modal")
+    url = "horizon:project:instances:rebuild"
+    policy_rules = (("compute", "compute:rebuild"),)
+
+    def allowed(self, request, instance):
+        return ((instance.status in ACTIVE_STATES
+                 or instance.status == 'SHUTOFF')
+                and not is_deleting(instance))
+
+    def get_link_url(self, datum):
+        instance_id = self.table.get_object_id(datum)
+        return urlresolvers.reverse(self.url, args=[instance_id])
+
+
+class DecryptInstancePassword(tables.LinkAction):
+    name = "decryptpassword"
+    verbose_name = _("Retrieve Password")
+    classes = ("btn-decrypt", "ajax-modal")
+    url = "horizon:project:instances:decryptpassword"
+
+    def allowed(self, request, instance):
+        enable = getattr(settings,
+                         'OPENSTACK_ENABLE_PASSWORD_RETRIEVE',
+                         False)
+        return (enable
+                and (instance.status in ACTIVE_STATES
+                     or instance.status == 'SHUTOFF')
+                and not is_deleting(instance)
+                and get_keyname(instance) is not None)
+
+    def get_link_url(self, datum):
+        instance_id = self.table.get_object_id(datum)
+        keypair_name = get_keyname(datum)
+        return urlresolvers.reverse(self.url, args=[instance_id,
+                                                    keypair_name])
+
+
+class AssociateIP(policy.PolicyTargetMixin, tables.LinkAction):
+    name = "associate"
+    verbose_name = _("Associate Floating IP")
+    url = "horizon:project:access_and_security:floating_ips:associate"
+    classes = ("ajax-modal",)
+    icon = "link"
+    policy_rules = (("compute", "network:associate_floating_ip"),)
+
+    def allowed(self, request, instance):
+        if not api.network.floating_ip_supported(request):
+            return False
+        if api.network.floating_ip_simple_associate_supported(request):
+            return False
+        return not is_deleting(instance)
+
+    def get_link_url(self, datum):
+        base_url = urlresolvers.reverse(self.url)
+        next = urlresolvers.reverse("horizon:project:instances:index")
+        params = {"instance_id": self.table.get_object_id(datum),
+                  workflows.IPAssociationWorkflow.redirect_param_name: next}
+        params = urlencode(params)
+        return "?".join([base_url, params])
+
+
+class SimpleAssociateIP(policy.PolicyTargetMixin, tables.Action):
+    name = "associate-simple"
+    verbose_name = _("Associate Floating IP")
+    icon = "link"
+    policy_rules = (("compute", "network:associate_floating_ip"),)
+
+    def allowed(self, request, instance):
+        if not api.network.floating_ip_simple_associate_supported(request):
+            return False
+        return not is_deleting(instance)
+
+    def single(self, table, request, instance_id):
+        try:
+            # target_id is port_id for Neutron and instance_id for Nova Network
+            # (Neutron API wrapper returns a 'portid_fixedip' string)
+            target_id = api.network.floating_ip_target_get_by_instance(
+                request, instance_id).split('_')[0]
+
+            fip = api.network.tenant_floating_ip_allocate(request)
+            api.network.floating_ip_associate(request, fip.id, target_id)
+            messages.success(request,
+                             _("Successfully associated floating IP: %s")
+                             % fip.ip)
+        except Exception:
+            exceptions.handle(request,
+                              _("Unable to associate floating IP."))
+        return shortcuts.redirect("horizon:project:instances:index")
+
+
+class SimpleDisassociateIP(policy.PolicyTargetMixin, tables.Action):
+    name = "disassociate"
+    verbose_name = _("Disassociate Floating IP")
+    classes = ("btn-danger", "btn-disassociate",)
+    policy_rules = (("compute", "network:disassociate_floating_ip"),)
+
+    def allowed(self, request, instance):
+        if not api.network.floating_ip_supported(request):
+            return False
+        if not conf.HORIZON_CONFIG["simple_ip_management"]:
+            return False
+        return not is_deleting(instance)
+
+    def single(self, table, request, instance_id):
+        try:
+            # target_id is port_id for Neutron and instance_id for Nova Network
+            # (Neutron API wrapper returns a 'portid_fixedip' string)
+            targets = api.network.floating_ip_target_list_by_instance(
+                request, instance_id)
+
+            target_ids = [t.split('_')[0] for t in targets]
+
+            fips = [fip for fip in api.network.tenant_floating_ip_list(request)
+                    if fip.port_id in target_ids]
+            # Removing multiple floating IPs at once doesn't work, so this pops
+            # off the first one.
+            if fips:
+                fip = fips.pop()
+                api.network.floating_ip_disassociate(request,
+                                                     fip.id, fip.port_id)
+                messages.success(request,
+                                 _("Successfully disassociated "
+                                   "floating IP: %s") % fip.ip)
+            else:
+                messages.info(request, _("No floating IPs to disassociate."))
+        except Exception:
+            exceptions.handle(request,
+                              _("Unable to disassociate floating IP."))
+        return shortcuts.redirect("horizon:project:instances:index")
+
+
+def instance_fault_to_friendly_message(instance):
+    fault = getattr(instance, 'fault', {})
+    message = fault.get('message', _("Unknown"))
+    default_message = _("Please try again later [Error: %s].") % message
+    fault_map = {
+        'NoValidHost': _("There is not enough capacity for this "
+                         "flavor in the selected availability zone. "
+                         "Try again later or select a different availability "
+                         "zone.")
+    }
+    return fault_map.get(message, default_message)
+
+
+def get_instance_error(instance):
+    if instance.status.lower() != 'error':
+        return None
+    message = instance_fault_to_friendly_message(instance)
+    preamble = _('Failed to launch instance "%s"'
+                 ) % instance.name or instance.id
+    message = string_concat(preamble, ': ', message)
+    return message
+
+
+class UpdateRow(tables.Row):
+    ajax = True
+
+    def get_vcenter_uuid_maps_info(self):
+        try:
+            request_api = RequestApi()
+            uuid_maps = request_api.getRequestInfo('api/heterogeneous/platforms/vcenter/uuid_maps') or []
+            return uuid_maps
+        except Exception:
+            return {}
+
+    def get_cserver_uuid_maps_info(self):
+        try:
+            request_api = RequestApi()
+            uuid_maps = request_api.getRequestInfo('api/heterogeneous/platforms/cserver/uuid_maps') or []
+            return uuid_maps
+        except Exception:
+            return {}
+        
+    def get_heterogeneous_plat(self, request):
+        try:
+            zarr = []
+            heterogeneous_plat = controlcenter_views.get_heterogeneous_plat(request)
+            for i in heterogeneous_plat:
+                zarr.append((i.domain_name,i.virtualplatformtype,i.name))
+            return zarr
+        except Exception as e:
+            LOG.error(str(e))
+            return []
+        
+    def get_data(self, request, instance_id):
+        try:
+            instance = api.nova.server_get(request, instance_id)
+            instance.virtualplatformtype = 'Openstack'
+            error = get_instance_error(instance)
+            if error:
+                messages.error(request, error)
+                
+            if instance.metadata and instance.metadata.get('platformtype'):
+                instance.virtualplatformtype = instance.metadata.get('platformtype')
+                if instance.virtualplatformtype == 'vcenter':
+                    setattr(instance,'OS-EXT-SRV-ATTR:host','-')
+                    zarr = self.get_heterogeneous_plat(request)
+                    plat_vms = []
+                    for i in zarr:
+                        if i[0] == getattr(instance,'OS-EXT-AZ:availability_zone',''):
+                            plat_vms = def_vcenter_vms(i[2])
+                            break
+                    for v in plat_vms:
+                        if v.get('id') == instance.id:
+                            setattr(instance,'OS-EXT-SRV-ATTR:host',v.get('host'))
+                elif instance.virtualplatformtype == 'cserver':
+                    setattr(instance,'OS-EXT-SRV-ATTR:host','-')
+                    zarr = self.get_heterogeneous_plat(request)
+                    plat_vms = []
+                    for i in zarr:
+                        if i[0] == getattr(instance,'OS-EXT-AZ:availability_zone',''):
+                            plat_vms = def_cserver_vms(i[2])
+                            break
+                    for v in plat_vms:
+                        if v.get('openstack_uuid') == instance.id:
+                            setattr(instance,'OS-EXT-SRV-ATTR:host',v.get('hostname'))
+    
+            if getattr(instance,'virtualplatformtype','') == 'vcenter':
+                vcenter_uuid_maps_info = self.get_vcenter_uuid_maps_info()
+                if vcenter_uuid_maps_info.get(instance.id):
+                    flavor_id = vcenter_uuid_maps_info.get(instance.id).get('flavor_id') or instance.flavor['id']
+                    for i in instance.addresses.keys():
+                        for j in instance.addresses[i]:
+                            j['addr'] = vcenter_uuid_maps_info.get(instance.id).get('ip') or ''
+                else:
+                    flavor_id = instance.flavor['id']
+                    for i in instance.addresses.keys():
+                        for j in instance.addresses[i]:
+                            j['addr'] = ''
+            elif getattr(instance,'virtualplatformtype','') == 'cserver':
+                cserver_uuid_maps_info = self.get_cserver_uuid_maps_info()
+                if cserver_uuid_maps_info.get(instance.id):
+                    flavor_id = cserver_uuid_maps_info.get(instance.id).get('flavor_id') or ''
+                    for i in instance.addresses.keys():
+                        for j in instance.addresses[i]:
+                            j['addr'] = cserver_uuid_maps_info.get(instance.id).get('ip') or ''
+                else:
+                    flavor_id = ''
+                    for i in instance.addresses.keys():
+                        for j in instance.addresses[i]:
+                            j['addr'] = ''
+            else:
+                flavor_id = instance.flavor["id"]
+                
+            if flavor_id:
+                instance.full_flavor = api.nova.flavor_get(request,flavor_id)
+                
+            if getattr(instance,'virtualplatformtype',''):
+                instance.virtualplatformtype = choices.translate(choices.CHOICES_VIRTUAL_TYPE,instance.virtualplatformtype) 
+            return instance
+        except Exception as e:
+            LOG.error(str(e))
+
+
+class StartInstance(policy.PolicyTargetMixin, tables.BatchAction):
+    name = "start"
+    policy_rules = (("compute", "compute:start"),)
+
+    @staticmethod
+    def action_present(count):
+        return ungettext_lazy(
+            u"Start Instance",
+            u"Start Instances",
+            count
+        )
+
+    @staticmethod
+    def action_past(count):
+        return ungettext_lazy(
+            u"Started Instance",
+            u"Started Instances",
+            count
+        )
+
+    def allowed(self, request, instance):
+        return instance.status in ("SHUTDOWN", "SHUTOFF", "CRASHED")
+
+    def action(self, request, obj_id):
+        try:
+            api.nova.server_start(request, obj_id)
+            name = '-'
+            for row in self.table.data:
+                if row.id == obj_id:
+                    name = row.name
+            operate_log(request.user.username,
+                        request.user.roles,
+                        name + " instance start")
+        except Exception as e:
+            LOG.error('Error to StartInstance: %s' % str(e))
+
+
+class StopInstance(policy.PolicyTargetMixin, tables.BatchAction):
+    name = "stop"
+    classes = ('btn-danger',)
+    policy_rules = (("compute", "compute:stop"),)
+
+    @staticmethod
+    def action_present(count):
+        return npgettext_lazy(
+            "Action to perform (the instance is currently running)",
+            u"Shut Off Instance",
+            u"Shut Off Instances",
+            count
+        )
+
+    @staticmethod
+    def action_past(count):
+        return npgettext_lazy(
+            "Past action (the instance is currently already Shut Off)",
+            u"Shut Off Instance",
+            u"Shut Off Instances",
+            count
+        )
+
+    def allowed(self, request, instance):
+        return ((get_power_state(instance)
+                in ("RUNNING", "PAUSED", "SUSPENDED"))
+                and not is_deleting(instance))
+
+    def action(self, request, obj_id):
+        try:
+            api.nova.server_stop(request, obj_id)
+            name = '-'
+            for row in self.table.data:
+                if row.id == obj_id:
+                    name = row.name
+            operate_log(request.user.username,
+                        request.user.roles,
+                        name + " instance stop")
+        except Exception as e:
+            LOG.error('Error to StopInstance: %s' % str(e))
+            status = ''
+            for row in self.table.data:
+                if row.id == obj_id:
+                    status = row.status
+                    break
+            if status == 'SUSPENDED':
+                messages.error(request, _('Instance in vm_state suspended. Cannot stop while the instance is in this state.'))
+                raise
+
+
+def get_ips(instance):
+    template_name = 'project/instances/_instance_ips.html'
+    context = {"instance": instance}
+    return template.loader.render_to_string(template_name, context)
+
+
+def get_size(instance):
+    if hasattr(instance, "full_flavor"):
+        template_name = 'project/instances/_instance_flavor.html'
+        size_ram = sizeformat.mb_float_format(instance.full_flavor.ram)
+        if instance.full_flavor.disk > 0:
+            size_disk = sizeformat.diskgbformat(instance.full_flavor.disk)
+        else:
+            size_disk = _("%s GB") % "0"
+        context = {
+            "name": instance.full_flavor.name,
+            "id": instance.id,
+            "size_disk": size_disk,
+            "size_ram": size_ram,
+            "vcpus": instance.full_flavor.vcpus
+        }
+        return template.loader.render_to_string(template_name, context)
+    return _("Not available")
+
+
+def get_keyname(instance):
+    if hasattr(instance, "key_name"):
+        keyname = instance.key_name
+        return keyname
+    return _("Not available")
+
+
+def get_power_state(instance):
+    return POWER_STATES.get(getattr(instance, "OS-EXT-STS:power_state", 0), '')
+
+
+STATUS_DISPLAY_CHOICES = (
+    ("deleted", pgettext_lazy("Current status of an Instance", u"Deleted")),
+    ("active", pgettext_lazy("Current status of an Instance", u"Active")),
+    ("shutoff", pgettext_lazy("Current status of an Instance", u"Shutoff")),
+    ("suspended", pgettext_lazy("Current status of an Instance",
+                                u"Suspended")),
+    ("paused", pgettext_lazy("Current status of an Instance", u"Paused")),
+    ("error", pgettext_lazy("Current status of an Instance", u"Error")),
+    ("resize", pgettext_lazy("Current status of an Instance",
+                             u"Resize/Migrate")),
+    ("verify_resize", pgettext_lazy("Current status of an Instance",
+                                    u"Confirm or Revert Resize/Migrate")),
+    ("revert_resize", pgettext_lazy(
+        "Current status of an Instance", u"Revert Resize/Migrate")),
+    ("reboot", pgettext_lazy("Current status of an Instance", u"Reboot")),
+    ("hard_reboot", pgettext_lazy("Current status of an Instance",
+                                  u"Hard Reboot")),
+    ("password", pgettext_lazy("Current status of an Instance", u"Password")),
+    ("rebuild", pgettext_lazy("Current status of an Instance", u"Rebuild")),
+    ("migrating", pgettext_lazy("Current status of an Instance",
+                                u"Migrating")),
+    ("build", pgettext_lazy("Current status of an Instance", u"Build")),
+    ("rescue", pgettext_lazy("Current status of an Instance", u"Rescue")),
+    ("deleted", pgettext_lazy("Current status of an Instance", u"Deleted")),
+    ("soft_deleted", pgettext_lazy("Current status of an Instance",
+                                   u"Soft Deleted")),
+    ("shelved", pgettext_lazy("Current status of an Instance", u"Shelved")),
+    ("shelved_offloaded", pgettext_lazy("Current status of an Instance",
+                                        u"Shelved Offloaded")),
+)
+
+
+TASK_DISPLAY_CHOICES = (
+    ("scheduling", pgettext_lazy("Task status of an Instance",
+                                 u"Scheduling")),
+    ("block_device_mapping", pgettext_lazy("Task status of an Instance",
+                                           u"Block Device Mapping")),
+    ("networking", pgettext_lazy("Task status of an Instance",
+                                 u"Networking")),
+    ("spawning", pgettext_lazy("Task status of an Instance", u"Spawning")),
+    ("image_snapshot", pgettext_lazy("Task status of an Instance",
+                                     u"Snapshotting")),
+    ("image_snapshot_pending", pgettext_lazy("Task status of an Instance",
+                                             u"Image Snapshot Pending")),
+    ("image_pending_upload", pgettext_lazy("Task status of an Instance",
+                                           u"Image Pending Upload")),
+    ("image_uploading", pgettext_lazy("Task status of an Instance",
+                                      u"Image Uploading")),
+    ("image_backup", pgettext_lazy("Task status of an Instance",
+                                   u"Image Backup")),
+    ("updating_password", pgettext_lazy("Task status of an Instance",
+                                        u"Updating Password")),
+    ("resize_prep", pgettext_lazy("Task status of an Instance",
+                                  u"Preparing Resize or Migrate")),
+    ("resize_migrating", pgettext_lazy("Task status of an Instance",
+                                       u"Resizing or Migrating")),
+    ("resize_migrated", pgettext_lazy("Task status of an Instance",
+                                      u"Resized or Migrated")),
+    ("resize_finish", pgettext_lazy("Task status of an Instance",
+                                    u"Finishing Resize or Migrate")),
+    ("resize_reverting", pgettext_lazy("Task status of an Instance",
+                                       u"Reverting Resize or Migrate")),
+    ("resize_confirming", pgettext_lazy("Task status of an Instance",
+                                        u"Confirming Resize or Migrate")),
+    ("rebooting", pgettext_lazy("Task status of an Instance", u"Rebooting")),
+    ("rebooting_hard", pgettext_lazy("Task status of an Instance",
+                                     u"Rebooting Hard")),
+    ("pausing", pgettext_lazy("Task status of an Instance", u"Pausing")),
+    ("unpausing", pgettext_lazy("Task status of an Instance", u"Resuming")),
+    ("suspending", pgettext_lazy("Task status of an Instance",
+                                 u"Suspending")),
+    ("resuming", pgettext_lazy("Task status of an Instance", u"Resuming")),
+    ("powering-off", pgettext_lazy("Task status of an Instance",
+                                   u"Powering Off")),
+    ("powering-on", pgettext_lazy("Task status of an Instance",
+                                  u"Powering On")),
+    ("rescuing", pgettext_lazy("Task status of an Instance", u"Rescuing")),
+    ("unrescuing", pgettext_lazy("Task status of an Instance",
+                                 u"Unrescuing")),
+    ("rebuilding", pgettext_lazy("Task status of an Instance",
+                                 u"Rebuilding")),
+    ("rebuild_block_device_mapping", pgettext_lazy(
+        "Task status of an Instance", u"Rebuild Block Device Mapping")),
+    ("rebuild_spawning", pgettext_lazy("Task status of an Instance",
+                                       u"Rebuild Spawning")),
+    ("migrating", pgettext_lazy("Task status of an Instance", u"Migrating")),
+    ("deleting", pgettext_lazy("Task status of an Instance", u"Deleting")),
+    ("soft-deleting", pgettext_lazy("Task status of an Instance",
+                                    u"Soft Deleting")),
+    ("restoring", pgettext_lazy("Task status of an Instance", u"Restoring")),
+    ("shelving", pgettext_lazy("Task status of an Instance", u"Shelving")),
+    ("shelving_image_pending_upload", pgettext_lazy(
+        "Task status of an Instance", u"Shelving Image Pending Upload")),
+    ("shelving_image_uploading", pgettext_lazy("Task status of an Instance",
+                                               u"Shelving Image Uploading")),
+    ("shelving_offloading", pgettext_lazy("Task status of an Instance",
+                                          u"Shelving Offloading")),
+    ("unshelving", pgettext_lazy("Task status of an Instance",
+                                 u"Unshelving")),
+)
+
+POWER_DISPLAY_CHOICES = (
+    ("NO STATE", pgettext_lazy("Power state of an Instance", u"No State")),
+    ("RUNNING", pgettext_lazy("Power state of an Instance", u"Running")),
+    ("BLOCKED", pgettext_lazy("Power state of an Instance", u"Blocked")),
+    ("PAUSED", pgettext_lazy("Power state of an Instance", u"Paused")),
+    ("SHUTDOWN", pgettext_lazy("Power state of an Instance", u"Shut Down")),
+    ("SHUTOFF", pgettext_lazy("Power state of an Instance", u"Shut Off")),
+    ("CRASHED", pgettext_lazy("Power state of an Instance", u"Crashed")),
+    ("SUSPENDED", pgettext_lazy("Power state of an Instance", u"Suspended")),
+    ("FAILED", pgettext_lazy("Power state of an Instance", u"Failed")),
+    ("BUILDING", pgettext_lazy("Power state of an Instance", u"Building")),
+)
+
+
+class InstancesFilterAction(tables.FilterAction):
+    filter_type = "server"
+    filter_choices = (('name', _("Instance Name"), True),
+                      ('status', _("Status ="), True),
+                      ('image', _("Image ID ="), True),
+                      ('flavor', _("Flavor ID ="), True))
+
+
+class InstancesTable(tables.DataTable):
+    TASK_STATUS_CHOICES = (
+        (None, True),
+        ("none", True)
+    )
+    STATUS_CHOICES = (
+        ("active", True),
+        ("shutoff", True),
+        ("suspended", True),
+        ("paused", True),
+        ("error", False),
+        ("rescue", True),
+        ("shelved_offloaded", True),
+    )
+    name = tables.Column("name",
+                         link=("horizon:project:instances:detail"),
+                         verbose_name=_("Instance Name"))
+    image_name = tables.Column("image_name",
+                               verbose_name=_("Image Name"))
+    ip = tables.Column(get_ips,
+                       verbose_name=_("IP Address"),
+                       attrs={'data-type': "ip"})
+    size = tables.Column(get_size,
+                         verbose_name=_("Size"),
+                         attrs={'data-type': 'size'})
+    keypair = tables.Column(get_keyname, verbose_name=_("Key Pair"))
+    status = tables.Column("status",
+                           filters=(title, filters.replace_underscores),
+                           verbose_name=_("Status"),
+                           status=True,
+                           status_choices=STATUS_CHOICES,
+                           display_choices=STATUS_DISPLAY_CHOICES)
+    az = tables.Column("availability_zone",
+                       verbose_name=_("Availability Zone"))
+    virtualplatformtype = tables.Column("virtualplatformtype",
+                       verbose_name=_("Virtual Platform Type"))
+    task = tables.Column("OS-EXT-STS:task_state",
+                         verbose_name=_("Task"),
+                         filters=(title, filters.replace_underscores),
+                         status=True,
+                         status_choices=TASK_STATUS_CHOICES,
+                         display_choices=TASK_DISPLAY_CHOICES)
+    state = tables.Column(get_power_state,
+                          filters=(title, filters.replace_underscores),
+                          verbose_name=_("Power State"),
+                          display_choices=POWER_DISPLAY_CHOICES)
+    created = tables.Column("created",
+                            verbose_name=_("Time since created"),
+                            filters=(filters.parse_isotime,
+                                     filters.timesince_sortable),
+                            attrs={'data-type': 'timesince'})
+
+    class Meta:
+        name = "instances"
+        verbose_name = _("Instances")
+        status_columns = ["status", "task"]
+        row_class = UpdateRow
+        table_actions = (LaunchLink, SoftRebootInstance, TerminateInstance,
+                         InstancesFilterAction)
+        row_actions = (StartInstance, ConfirmResize, RevertResize,
+                       CreateSnapshot, SimpleAssociateIP, AssociateIP,
+                       SimpleDisassociateIP, EditInstance,
+                       DecryptInstancePassword, EditInstanceSecurityGroups,
+                       ConsoleLink, LogLink, TogglePause, ToggleSuspend,
+                       ResizeLink, SoftRebootInstance, RebootInstance,
+                       StopInstance, RebuildInstance, TerminateInstance)

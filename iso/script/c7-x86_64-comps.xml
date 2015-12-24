@@ -1,0 +1,381 @@
+﻿<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE comps PUBLIC "-//CentOS//DTD Comps info//EN" "comps.dtd">
+<comps>
+  <group>
+   <id>core</id>
+   <name>Core</name>
+   <name xml:lang='zh_CN'>核心</name>
+   <description>Smallest possible installation.</description>
+   <description xml:lang='zh_CN'>最小可能安装。</description>
+   <default>true</default>
+   <uservisible>false</uservisible>
+   <packagelist>
+      <packagereq type="mandatory">audit</packagereq>
+      <packagereq type="mandatory">basesystem</packagereq>
+      <packagereq type="mandatory">bash</packagereq>
+      <packagereq type="mandatory">biosdevname</packagereq>
+      <packagereq type="mandatory">btrfs-progs</packagereq>
+      <packagereq type="mandatory">coreutils</packagereq>
+      <packagereq type="mandatory">cronie</packagereq>
+      <packagereq type="mandatory">curl</packagereq>
+      <packagereq type="mandatory">dhclient</packagereq>
+      <packagereq type="mandatory">e2fsprogs</packagereq>
+      <packagereq type="mandatory">filesystem</packagereq>
+      <packagereq type="mandatory">firewalld</packagereq>
+      <packagereq type="mandatory">glibc</packagereq>
+      <packagereq type="mandatory">hostname</packagereq>
+      <packagereq type="mandatory">initscripts</packagereq>
+      <packagereq type="mandatory">iproute</packagereq>
+      <packagereq type="mandatory">iprutils</packagereq>
+      <packagereq type="mandatory">iptables</packagereq>
+      <packagereq type="mandatory">iputils</packagereq>
+      <packagereq type="mandatory">irqbalance</packagereq>
+      <packagereq type="mandatory">kbd</packagereq>
+      <packagereq type="mandatory">kexec-tools</packagereq>
+      <packagereq type="mandatory">less</packagereq>
+      <packagereq type="mandatory">man-db</packagereq>
+      <packagereq type="mandatory">ncurses</packagereq>
+      <packagereq type="mandatory">openssh-clients</packagereq>
+      <packagereq type="mandatory">openssh-server</packagereq>
+      <packagereq type="mandatory">parted</packagereq>
+      <packagereq type="mandatory">passwd</packagereq>
+      <packagereq type="mandatory">plymouth</packagereq>
+      <packagereq type="mandatory">policycoreutils</packagereq>
+      <packagereq type="mandatory">procps-ng</packagereq>
+      <packagereq type="mandatory">rootfiles</packagereq>
+      <packagereq type="mandatory">rpm</packagereq>
+      <packagereq type="mandatory">rsyslog</packagereq>
+      <packagereq type="mandatory">selinux-policy-targeted</packagereq>
+      <packagereq type="mandatory">setup</packagereq>
+      <packagereq type="mandatory">shadow-utils</packagereq>
+      <packagereq type="mandatory">sudo</packagereq>
+      <packagereq type="mandatory">systemd</packagereq>
+      <packagereq type="mandatory">tar</packagereq>
+      <packagereq type="mandatory">tuned</packagereq>
+      <packagereq type="mandatory">util-linux</packagereq>
+      <packagereq type="mandatory">vim-minimal</packagereq>
+      <packagereq type="mandatory">xfsprogs</packagereq>
+      <packagereq type="mandatory">yum</packagereq>
+      <packagereq type="default">aic94xx-firmware</packagereq>
+      <packagereq type="default">alsa-firmware</packagereq>
+      <packagereq type="default">bfa-firmware</packagereq>
+      <packagereq type="default">dracut-config-rescue</packagereq>
+      <packagereq type="default">ivtv-firmware</packagereq>
+      <packagereq type="default">iwl100-firmware</packagereq>
+      <packagereq type="default">iwl1000-firmware</packagereq>
+      <packagereq type="default">iwl105-firmware</packagereq>
+      <packagereq type="default">iwl135-firmware</packagereq>
+      <packagereq type="default">iwl2000-firmware</packagereq>
+      <packagereq type="default">iwl2030-firmware</packagereq>
+      <packagereq type="default">iwl3160-firmware</packagereq>
+      <packagereq type="default">iwl3945-firmware</packagereq>
+      <packagereq type="default">iwl4965-firmware</packagereq>
+      <packagereq type="default">iwl5000-firmware</packagereq>
+      <packagereq type="default">iwl5150-firmware</packagereq>
+      <packagereq type="default">iwl6000-firmware</packagereq>
+      <packagereq type="default">iwl6000g2a-firmware</packagereq>
+      <packagereq type="default">iwl6000g2b-firmware</packagereq>
+      <packagereq type="default">iwl6050-firmware</packagereq>
+      <packagereq type="default">iwl7260-firmware</packagereq>
+      <packagereq type="default">kernel-tools</packagereq>
+      <packagereq type="default">libertas-sd8686-firmware</packagereq>
+      <packagereq type="default">libertas-sd8787-firmware</packagereq>
+      <packagereq type="default">libertas-usb8388-firmware</packagereq>
+      <packagereq type="default">libsysfs</packagereq>
+      <packagereq type="default">linux-firmware</packagereq>
+      <packagereq type="default">microcode_ctl</packagereq>
+      <packagereq type="default">NetworkManager</packagereq>
+      <packagereq type="default">NetworkManager-team</packagereq>
+      <packagereq type="default">NetworkManager-tui</packagereq>
+      <packagereq type="default">postfix</packagereq>
+      <packagereq type="default">ql2100-firmware</packagereq>
+      <packagereq type="default">ql2200-firmware</packagereq>
+      <packagereq type="default">ql23xx-firmware</packagereq>
+      <packagereq type="default">rdma</packagereq>
+      <packagereq type="default">net-tools</packagereq>
+      <packagereq type="default">vim-enhanced</packagereq>
+      <packagereq type="default">wget</packagereq>
+      <packagereq type="mandatory">chrony</packagereq>
+      <packagereq type="optional">dracut-config-generic</packagereq>
+      <packagereq type="optional">dracut-fips</packagereq>
+      <packagereq type="optional">dracut-fips-aesni</packagereq>
+      <packagereq type="optional">dracut-network</packagereq>
+      <packagereq type="optional">openssh-keycat</packagereq>
+      <packagereq type="optional">selinux-policy-mls</packagereq>
+      <packagereq type="optional">tboot</packagereq>
+   </packagelist>
+  </group>
+  <group>
+   <id>base</id>
+   <name>Base</name>
+   <name xml:lang='zh_CN'>基础</name>
+   <description>Massclouds cloud platform base library.</description>
+   <description xml:lang='zh_CN'>乾云云平台运行基础库。</description>
+   <default>true</default>
+   <uservisible>false</uservisible>
+   <packagelist>
+      <packagereq type="default">cobbler</packagereq>
+      <packagereq type="default">tftp-server</packagereq>
+      <packagereq type="default">xinetd</packagereq>
+      <packagereq type="default">dhcp</packagereq>
+      <packagereq type="default">httpd</packagereq>
+      <packagereq type="default">rsync</packagereq>
+      <packagereq type="default">pykickstart</packagereq>
+      <packagereq type="default">python-ctypes</packagereq>
+      <packagereq type="default">ntp</packagereq>
+      <packagereq type="default">cman</packagereq>
+      <packagereq type="default">ruby</packagereq>
+      <packagereq type="default">ruby-libs</packagereq>
+      <packagereq type="default">puppet-server</packagereq>
+      <packagereq type="default">mcos-deploy-cobbler-loaders</packagereq>
+      <packagereq type="default">mcos-deploy-openstackrpmrepo</packagereq>
+      <packagereq type="default">mcos-deploy-node-iso</packagereq>
+      <packagereq type="default">mcos-deploy-setup</packagereq>
+      <packagereq type="default">fence-agents</packagereq>
+      <packagereq type="default">cman</packagereq>
+      <packagereq type="default">ceph</packagereq>
+      <packagereq type="default">ceph-radosgw</packagereq>
+      <packagereq type="default">ceph-deploy</packagereq>
+      <packagereq type="default">mcos-deploy-node-ks</packagereq>
+      <packagereq type="default">python-paramiko</packagereq>
+      <packagereq type="default">python-crypto</packagereq>
+      <packagereq type="default">python-django-bash-completion</packagereq>
+      <packagereq type="default">python-django</packagereq>
+      <packagereq type="default">python-ecdsa</packagereq>
+      <packagereq type="default">cobbler-web</packagereq>
+      <packagereq type="default">nginx</packagereq>
+      <packagereq type="default">uwsgi</packagereq>
+      <packagereq type="default">uwsgi-plugin-python</packagereq>
+      <packagereq type="default">python-augeas</packagereq>
+      <packagereq type="default">python-lockfile</packagereq>
+      <packagereq type="default">python-gudev</packagereq>
+      <packagereq type="default">python-ethtool</packagereq>
+      <packagereq type="default">system-config-keyboard-base</packagereq>
+      <packagereq type="default">python-psutil</packagereq>
+      <packagereq type="default">mplatform</packagereq>
+      <packagereq type="default">lsof</packagereq>	
+      <!--packagereq requires="ruby" type="conditional">rubygem-abrt</packagereq>
+      <packagereq type="default">abrt-addon-ccpp</packagereq>
+      <packagereq type="default">libreport-plugin-mailx</packagereq>
+      <packagereq type="default">yum-utils</packagereq>
+      <packagereq type="optional">mkbootdisk</packagereq>
+      <packagereq type="optional">mtools</packagereq>
+      <packagereq type="optional">ncurses-term</packagereq>
+      <packagereq type="optional">ntp</packagereq>
+      <packagereq type="optional">oddjob</packagereq>
+      <packagereq type="optional">pax</packagereq>
+      <packagereq type="optional">prelink</packagereq>
+      <packagereq type="optional">PyPAM</packagereq>
+      <packagereq type="optional">python-volume_key</packagereq>
+      <packagereq type="optional">redhat-lsb-core</packagereq>
+      <packagereq type="optional">redhat-upgrade-dracut</packagereq>
+      <packagereq type="optional">redhat-upgrade-tool</packagereq>
+      <packagereq type="optional">rsyslog-gnutls</packagereq>
+      <packagereq type="optional">rsyslog-gssapi</packagereq>
+      <packagereq type="optional">rsyslog-relp</packagereq>
+      <packagereq type="optional">sgpio</packagereq>
+      <packagereq type="optional">sox</packagereq>
+      <packagereq type="optional">squashfs-tools</packagereq>
+      <packagereq type="optional">star</packagereq>
+      <packagereq type="optional">tmpwatch</packagereq>
+      <packagereq type="optional">udftools</packagereq>
+      <packagereq type="optional">uuidd</packagereq>
+      <packagereq type="optional">volume_key</packagereq>
+      <packagereq type="optional">wodim</packagereq>
+      <packagereq type="optional">x86info</packagereq>
+      <packagereq type="optional">yum-plugin-aliases</packagereq>
+      <packagereq type="optional">yum-plugin-changelog</packagereq>
+      <packagereq type="optional">yum-plugin-tmprepo</packagereq>
+      <packagereq type="optional">yum-plugin-verify</packagereq>
+      <packagereq type="optional">yum-plugin-versionlock</packagereq>
+      <packagereq type="optional">zsh</packagereq-->
+   </packagelist>
+  </group>
+  <group>
+   <id>AllInOne</id>
+   <name>Openstack All In One</name>
+   <name xml:lang='zh_CN'>Openstack All In One</name>
+   <description>Openstack All In One.</description>
+   <description xml:lang='zh_CN'>Openstack全部服务</description>
+   <default>true</default>
+   <uservisible>false</uservisible>
+   <packagelist>
+      <packagereq type="mandatory">autogen-libopts</packagereq>
+      <packagereq type="mandatory">ntp</packagereq>
+      <packagereq type="mandatory">ntpdate</packagereq>
+      <packagereq type="mandatory">libaio</packagereq>
+      <packagereq type="mandatory">mariadb</packagereq>
+      <packagereq type="mandatory">mariadb-libs</packagereq>
+      <packagereq type="mandatory">mariadb-server</packagereq>
+	  <!-- mcos-openstack-allinone-->   
+	  <packagereq type="mandatory">mcos-openstack-base</packagereq>
+	  <packagereq type="mandatory">mcos-openstack-allinone</packagereq>
+	  <!-- openstack-selinux-->
+	  <packagereq type="mandatory">openstack-selinux</packagereq>
+	  <!-- RabbitMQ-->
+	  <packagereq type="mandatory">rabbitmq-server</packagereq>
+	  <!-- keystone-->
+      <packagereq type="mandatory">openstack-keystone</packagereq>
+      <packagereq type="mandatory">python-keystoneclient</packagereq>  
+	  <!-- glance-->
+	  <packagereq type="mandatory">openstack-glance</packagereq>
+      <packagereq type="mandatory">python-glanceclient</packagereq>
+      <!-- nova-->        
+	  <packagereq type="mandatory">openstack-nova-api</packagereq>
+	  <packagereq type="mandatory">openstack-nova-cert</packagereq>
+	  <packagereq type="mandatory">openstack-nova-conductor</packagereq>
+      <packagereq type="mandatory">openstack-nova-console</packagereq>
+	  <packagereq type="mandatory">openstack-nova-novncproxy</packagereq>
+	  <packagereq type="mandatory">openstack-nova-scheduler</packagereq>
+	  <packagereq type="mandatory">python-novaclient</packagereq>
+	  <packagereq type="mandatory">spice-html5</packagereq>
+	  <packagereq type="mandatory">openstack-nova-spicehtml5proxy</packagereq>
+	  <packagereq type="mandatory">openstack-nova-compute</packagereq>  
+	  <packagereq type="mandatory">libvirt</packagereq>
+	  <packagereq type="mandatory">sysfsutils</packagereq>
+	  <!-- neutron-->         
+	  <packagereq type="mandatory">openstack-neutron</packagereq>
+	  <packagereq type="mandatory">openstack-neutron-ml2</packagereq>
+	  <packagereq type="mandatory">python-neutronclient</packagereq>
+      <packagereq type="mandatory">openstack-neutron-openvswitch</packagereq>
+	  <!-- Cinder-->    
+	  <packagereq type="mandatory">openstack-cinder</packagereq>
+	  <packagereq type="mandatory">python-cinderclient</packagereq>
+	  <packagereq type="mandatory">python-oslo-db</packagereq>
+      <packagereq type="mandatory">targetcli</packagereq>
+	  <!--Horizon-->      
+	  <packagereq type="mandatory">openstack-dashboard</packagereq>
+	  <packagereq type="mandatory">httpd</packagereq>
+	  <packagereq type="mandatory">mod_wsgi</packagereq>
+	  <packagereq type="mandatory">memcached</packagereq>
+	  <packagereq type="mandatory">python-memcached</packagereq>
+   </packagelist>
+  </group>
+  <group>
+  <group>
+   <id>control</id>
+   <name>Openstack control service</name>
+   <name xml:lang='zh_CN'>Openstack Control Service</name>
+   <description>Openstack control service.</description>
+   <description xml:lang='zh_CN'>Openstack控制服务</description>
+   <default>true</default>
+   <uservisible>false</uservisible>
+   <packagelist>
+      <!-- mcos-openstack-controller-->   
+	  <packagereq type="mandatory">mcos-openstack-base</packagereq>
+	  <packagereq type="mandatory">mcos-openstack-controller</packagereq>
+	  <!-- database -->
+      <packagereq type="mandatory">autogen-libopts</packagereq>
+      <packagereq type="mandatory">ntp</packagereq>
+      <packagereq type="mandatory">ntpdate</packagereq>
+      <packagereq type="mandatory">libaio</packagereq>
+      <packagereq type="mandatory">mariadb</packagereq>
+      <packagereq type="mandatory">mariadb-libs</packagereq>
+      <packagereq type="mandatory">mariadb-server</packagereq>
+	  <!-- openstack-selinux-->
+	  <packagereq type="mandatory">openstack-selinux</packagereq>
+	  <!-- RabbitMQ-->
+	  <packagereq type="mandatory">rabbitmq-server</packagereq>
+	  <!-- keystone-->
+      <packagereq type="mandatory">openstack-keystone</packagereq>
+      <packagereq type="mandatory">python-keystoneclient</packagereq>  
+	  <!-- glance-->
+	  <packagereq type="mandatory">openstack-glance</packagereq>
+      <packagereq type="mandatory">python-glanceclient</packagereq>
+      <!-- nova-->        
+	  <packagereq type="mandatory">openstack-nova-api</packagereq>
+	  <packagereq type="mandatory">openstack-nova-cert</packagereq>
+	  <packagereq type="mandatory">openstack-nova-conductor</packagereq>
+      <packagereq type="mandatory">openstack-nova-console</packagereq>
+	  <packagereq type="mandatory">openstack-nova-novncproxy</packagereq>
+	  <packagereq type="mandatory">openstack-nova-scheduler</packagereq>
+	  <packagereq type="mandatory">python-novaclient</packagereq>
+	  <packagereq type="mandatory">spice-html5</packagereq>
+	  <packagereq type="mandatory">openstack-nova-spicehtml5proxy</packagereq>
+	  <packagereq type="mandatory">libvirt</packagereq>
+	  <packagereq type="mandatory">openstack-nova-compute</packagereq>  
+	  <packagereq type="mandatory">sysfsutils</packagereq>
+	  <!-- neutron-->         
+	  <packagereq type="mandatory">openstack-neutron</packagereq>
+	  <packagereq type="mandatory">openstack-neutron-ml2</packagereq>
+	  <packagereq type="mandatory">python-neutronclient</packagereq>
+      <packagereq type="mandatory">openstack-neutron-openvswitch</packagereq>
+	  <!-- Cinder-->    
+	  <!--packagereq type="mandatory">openstack-cinder</packagereq>
+	  <packagereq type="mandatory">python-cinderclient</packagereq>
+	  <packagereq type="mandatory">python-oslo-db</packagereq>
+      <packagereq type="mandatory">targetcli</packagereq-->
+	  <!--Horizon-->      
+	  <packagereq type="mandatory">openstack-dashboard</packagereq>
+	  <packagereq type="mandatory">httpd</packagereq>
+	  <packagereq type="mandatory">mod_wsgi</packagereq>
+	  <packagereq type="mandatory">memcached</packagereq>
+	  <packagereq type="mandatory">python-memcached</packagereq>
+   </packagelist>
+  </group>
+  <group>
+   <id>neutron</id>
+   <name>openstack neutron</name>
+   <name xml:lang='zh_CN'>Openstack Network Service</name>
+   <description>Openstack Network service.</description>
+   <description xml:lang='zh_CN'>Openstack网络服务</description>
+   <default>true</default>
+   <uservisible>false</uservisible>
+   <packagelist>       
+	  <!-- neutron-->         
+	  <packagereq type="mandatory">openstack-neutron</packagereq>
+	  <packagereq type="mandatory">openstack-neutron-ml2</packagereq>
+	  <packagereq type="mandatory">python-neutronclient</packagereq>
+      <packagereq type="mandatory">openstack-neutron-openvswitch</packagereq>
+   </packagelist>
+  </group>
+  <group>
+   <id>nova</id>
+   <name>openstack nova</name>
+   <name xml:lang='zh_CN'>Openstack Computer Service</name>
+   <description>Openstack computer service.</description>
+   <description xml:lang='zh_CN'>Openstack计算服务</description>
+   <default>true</default>
+   <uservisible>false</uservisible>
+   <packagelist>     
+      <!-- mcos-openstack-compute-->   
+	  <packagereq type="mandatory">mcos-openstack-base</packagereq>
+	  <packagereq type="mandatory">mcos-openstack-compute</packagereq>
+	  <!-- compute-->
+	  <packagereq type="mandatory">openstack-nova-api</packagereq>
+	  <packagereq type="mandatory">openstack-nova-cert</packagereq>
+	  <packagereq type="mandatory">openstack-nova-conductor</packagereq>
+      <packagereq type="mandatory">openstack-nova-console</packagereq>
+	  <packagereq type="mandatory">openstack-nova-novncproxy</packagereq>
+	  <packagereq type="mandatory">openstack-nova-scheduler</packagereq>
+	  <packagereq type="mandatory">python-novaclient</packagereq>
+	  <packagereq type="mandatory">spice-html5</packagereq>
+	  <packagereq type="mandatory">openstack-nova-spicehtml5proxy</packagereq>
+	  <packagereq type="mandatory">openstack-nova-compute</packagereq>  
+	  <packagereq type="mandatory">libvirt</packagereq>
+	  <packagereq type="mandatory">sysfsutils</packagereq>
+	  <!-- neutron-->         
+	  <packagereq type="mandatory">openstack-neutron</packagereq>
+	  <packagereq type="mandatory">openstack-neutron-ml2</packagereq>
+	  <packagereq type="mandatory">python-neutronclient</packagereq>
+      <packagereq type="mandatory">openstack-neutron-openvswitch</packagereq>
+   </packagelist>
+  </group>
+  <environment>
+   <id>minimal</id>
+   <name>Openstack Install</name>
+   <name xml:lang='zh_CN'>Openstack系统</name>
+   <description>Openstack System.</description>
+   <display_order>1</display_order>
+   <grouplist>
+      <groupid>core</groupid>
+      <groupid>base</groupid>
+   </grouplist>
+   <!--optionlist>
+      <groupid>AllInOne</groupid>
+      <groupid>control</groupid>
+      <groupid>neutron</groupid>
+      <groupid>nova</groupid>
+   </optionlist-->
+  </environment>
+</comps>

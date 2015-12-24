@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "VM" %}{% endblock %}
+
+{% block page_header %}
+  {% include "horizon/common/_page_header.html" with title=_("VM") %}
+{% endblock page_header %}
+
+{% block main %}
+  <div id="vmalarm">
+      {{ vm_alarm_table.render }}
+  </div>
+
+  <div id="vmpolicy">
+      {{ vm_policy_table.render }}
+  </div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% load i18n sizeformat parse_date %}
+
+<h3>{% trans "Router Overview" %}: {{router.name }}</h3>
+
+<div class="info detail">
+  <dl>
+    <dt>{% trans "Name" %}</dt>
+    <dd>{{ router.name|default:_("None") }}</dd>
+    <dt>{% trans "ID" %}</dt>
+    <dd>{{ router.id }}</dd>
+    <dt>{% trans "Project ID" %}</dt>
+    <dd>{{ router.tenant_id }}</dd>
+    <dt>{% trans "Status" %}</dt>
+    <dd>{{ router.status|capfirst }}</dd>
+    <dt>{% trans "Admin State" %}</dt>
+    <dd>{{ router.admin_state|default:_("Unknown") }}</dd>
+    {% if dvr_supported %}
+    <dt>{% trans "Distributed" %}</dt>
+    <dd>{{ router.distributed|yesno|capfirst }}</dd>
+    {% endif %}
+    {% if ha_supported %}
+    <dt>{% trans "High Availability Mode" %}</dt>
+    <dd>{{ router.ha|yesno|capfirst }}</dd>
+    {% endif %}
+    {% if router.external_gateway_info %}
+    <dt>{% trans "External Gateway Information" %}</dt>
+    <dd>{% trans "Connected External Network" %}:
+      {{ router.external_gateway_info.network }}</dd>
+    {% endif %}
+  </dl>
+</div>
+

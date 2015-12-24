@@ -1,0 +1,65 @@
+<!-- page for login -->
+<html>
+<head>
+<link href="/static/css/cplatform.css" rel="stylesheet">
+<script src="/static/js/jquery-1.11.0.min.js"></script>
+<script>
+$(document).ready(function(){
+	//TODO 恢复注释
+	// if(window.location.href.indexOf('accounts/login') == -1){
+	// 	window.location = '/accounts/login/';
+	// }
+});
+function login(){
+	var login_user = $('#login_user').val();
+	if(!login_user){
+		return;
+	}
+	var login_passwd = $('#login_passwd').val();
+	if(!login_passwd){
+		return;
+	}
+	document.forms[0].submit();
+}
+</script>
+</head>
+<body class="loginBody">
+	<div>
+		<img src="/static/images/logo_login.png" />
+		<form action="/accounts/login/" method="post" id="login_form">
+			{% csrf_token %}
+			<div class="loginInputDiv">
+				<div style="background-image:url(/static/images/user.png) ">
+					<input id="login_user" name="login_user" >
+				</div>
+		
+				<div style="background-image:url(/static/images/passwd.png) ">
+					<input id="login_passwd" name="login_passwd" type="password" >
+				</div>
+			</div>
+		</form>
+		
+		<div id="error">{{ errormsg }}</div>
+		
+		<div >
+			<input type="hidden" name="next" value="{{ next }}" />
+			<button type="button" class="loginButton" onclick="login()"></button>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	//增加键盘事件
+	$('#login_user').on('keyup', function(e){
+		if(e.keyCode == 13) {
+			$('#login_passwd').focus();
+		}
+	});
+
+	$('#login_passwd').on('keyup', function(e){
+		if(e.keyCode == 13) {
+			$('.loginButton').trigger('click');
+		}
+	});
+
+</script>
+</html>

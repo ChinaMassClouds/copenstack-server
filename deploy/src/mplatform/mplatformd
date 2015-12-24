@@ -1,0 +1,105 @@
+#!/usr/bin/python
+#coding=utf-8
+#
+# Project Chost
+#
+# Copyright IBM, Corp. 2013
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA  02110-1301  USA
+
+import os
+import sys
+import socket
+import fcntl
+import struct
+sys.path.insert(1, '/usr/local/lib/python2.7/site-packages')
+#sys.path.insert(2, '/usr/local/mplatform')
+#sys.path.append('/usr/lib/python2.7/site-packages/mplatform')
+
+from mplatform.config import config
+from  mplatform import proxy
+
+
+from optparse import OptionParser
+
+
+def start( options):
+
+        # Launch reverse proxy
+        proxy.start_proxy(options)
+        #webssh.start_webssh(options)
+        make_dirs = [
+            #os.path.dirname(os.path.abspath(options.access_log)),
+            #os.path.dirname(os.path.abspath(options.error_log)),
+            #os.path.dirname(os.path.abspath(config.get_object_store())),
+            #os.path.abspath(config.get_screenshot_path()),
+            #os.path.abspath(config.get_debugreports_path()),
+            #os.path.abspath(config.get_distros_store())
+        ]
+        for directory in make_dirs:
+            if not os.path.isdir(directory):
+                os.makedirs(directory)
+        
+
+def main(argv):
+    # Script must run as root or with sudo.
+    if not os.geteuid() == 0:
+        sys.exit("\nMust be root to run this script. Exiting ...\n")
+    print "=================argv[0]="+argv[0]
+    if argv[0] == 'start':
+        pass
+    elif argv[0] == 'stop':
+        result2 = os.system('killall -9 uwsgi;')
+        return
+    elif argv[0] == 'restart':
+        os.system('killall -9 uwsgi')
+    else:
+        sys.exit("\n参数应该是：start stop restart. Exiting ...\n")
+
+    #config1 = config._get_config()
+    host = config.get("server", "host")
+    port = config.get("server", "port")
+    proxy_port = config.get("server", "proxy_port");
+    path = config.get("server", "path");
+    #logDir = config.get("logging", "log_dir")
+    #logLevel = config.get("logging", "log_level")
+    #logLevel = config.get("logging", "log_level")
+
+    parser = OptionParser()
+    parser.add_option('--host', type="string", default=host,
+                      help="Hostname to listen on")
+    parser.add_option('--port', type="int", default=port,
+                      help="Port to listen on (default %s)" % port)
+
+    parser.add_option('--proxy_port', type="int", default=proxy_port,
+                      help=" server port (default %s)" % proxy_port)
+    parser.add_option('--path', type="string", default=path,
+                      help="path")
+    #parser.add_option('--log-level', default=logLevel,
+     #                 help="Logging level")
+
+    (options, args) = parser.parse_args()
+    
+    start(options)
+    
+    if os.path.exists('/usr/lib64/uwsgi/python_plugin.so') :
+        os.system('uwsgi --plugin python -x /usr/lib/python2.7/site-packages/mplatform/uwsgi.xml&')
+    else:
+        os.system('uwsgi -x /usr/lib/python2.7/site-packages/mplatform/uwsgi.xml&')
+
+
+if __name__ == '__main__':
+    sys.exit(main(sys.argv[1:]))

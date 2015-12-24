@@ -1,0 +1,8 @@
+[Main]
+Product=Openstack
+Version=1
+BugURL=http://bugs.centos.org
+IsFinal=True
+UUID=201503272225.x86_64
+[Compose]
+Lorax=19.6.51-1

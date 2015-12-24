@@ -1,0 +1,12 @@
+<div id="template_nodedisk" class="hid">
+	<li class="node">
+		<label>@@@name@@@</label>
+		<input type="text" class="input" id="@@@name@@@" value="@@@size@@@" readonly />
+		<span class="checkbox diskext_checkbox" data-type="@@@diskType@@@" data-sys="@@@filesystem@@@"></span>
+		<select class="diskext_select" data-type="@@@diskType@@@" data-sys="@@@filesystem@@@">
+			<option value=""></option>
+			<option value="nfs">扩展NFS存储空间</option>
+			<option value="cinder">扩展cinder卷空间</option>
+		</select>
+	</li>
+</div>

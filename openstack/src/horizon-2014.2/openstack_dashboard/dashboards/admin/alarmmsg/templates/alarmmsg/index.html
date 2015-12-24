@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Alarmmsg" %}{% endblock %}
+
+{% block page_header %}
+  {% include "horizon/common/_page_header.html" with title=_("Alarmmsg") %}
+{% endblock page_header %}
+
+{% block main %}
+  <div id="alarmmsg">
+      {{ table.render }}
+  </div>
+<script type="text/javascript">
+/*
+if (typeof horizon.alarmmsg_search !== 'undefined') {
+   	horizon.alarmmsg_search.init();
+} else {
+   	addHorizonLoadEvent(function () {
+     	horizon.alarmmsg_search.init();
+	});
+}*/
+</script>
+{% endblock %}

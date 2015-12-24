@@ -1,0 +1,14 @@
+[Unit]
+Description=mplatform Server
+After=getty@tty1.service
+
+[Service]
+Type=forking
+Environment=PYTHONPATH=/mcos/svmanager/usr/lib/python2.7/site-packages:/mcos/dvmanager/usr/lib/python2.7/site-packages
+ExecStart=/usr/sbin/mplatformd start &
+ExecReload=/usr/sbin/mplatformd restart &
+ExecStop=/usr/sbin/mplatformd stop
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

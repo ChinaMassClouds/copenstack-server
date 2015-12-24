@@ -1,0 +1,14 @@
+#!/bin/bash
+
+case "$1" in
+    start)
+        python /usr/share/HGPlatformAPI/HGRestAPI.py start &
+        ;;
+    stop)
+        python /usr/share/HGPlatformAPI/HGRestAPI.py stop
+        ;;
+    restart)
+        python /usr/share/HGPlatformAPI/HGRestAPI.py stop
+        python /usr/share/HGPlatformAPI/HGRestAPI.py start &
+        ;;
+esac

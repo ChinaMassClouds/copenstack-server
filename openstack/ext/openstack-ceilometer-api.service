@@ -1,0 +1,12 @@
+[Unit]
+Description=OpenStack ceilometer API service
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=ceilometer
+ExecStart=/usr/bin/ceilometer-api --logfile /var/log/ceilometer/api.log
+
+[Install]
+WantedBy=multi-user.target
+

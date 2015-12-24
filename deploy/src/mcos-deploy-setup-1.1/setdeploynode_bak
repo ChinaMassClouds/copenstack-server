@@ -1,0 +1,149 @@
+#!/bin/bash
+
+#get the config file info
+source /etc/config
+
+
+echo ""
+echo "/////////////////////////////////////////////////////////////////////////////////////////"
+echo "/////////////////////////////    configuration  puppet    //////////////////////////////"
+echo "/////////////////////////////////////////////////////////////////////////////////////////"
+echo ""
+
+echo "set the deploy node hostname"
+hostnamectl set-hostname master.server.com
+sed -i '3,$d' /etc/hosts
+echo "$THIS_HOST_IP  master.server.com" >> /etc/hosts
+sed -i '/certname=master.server.com/d' /etc/puppet/puppet.conf
+sed -i '/\[master\]/d' /etc/puppet/puppet.conf
+echo -e "[master]\n    certname=master.server.com" >> /etc/puppet/puppet.conf
+
+systemctl enable puppetmaster
+systemctl start puppetmaster
+systemctl status puppetmaster
+
+echo ""
+echo "/////////////////////////////////////////////////////////////////////////////////////////"
+echo "/////////////////////////////    configuration  cobbler    //////////////////////////////"
+echo "/////////////////////////////////////////////////////////////////////////////////////////"
+echo ""
+
+echo "Close the firewall"
+systemctl disable firewalld
+systemctl stop firewalld
+sed -i '/^SELINUX=/ s/^SELINUX=.*/SELINUX=disabled/g' /etc/selinux/config
+setenforce 0
+
+echo "enable the rsync xinetd cobbler http dhcp tftp service"
+systemctl enable rsyncd
+systemctl enable xinetd
+systemctl enable cobblerd
+systemctl enable httpd
+#systemctl enable dhcpd
+systemctl enable tftp.socket
+
+echo "restart the service" 
+systemctl restart xinetd
+systemctl status xinetd
+
+systemctl start tftp.socket
+systemctl status tftp.socket
+
+systemctl restart tftp
+systemctl status tftp
+
+systemctl restart httpd
+systemctl status httpd
+
+systemctl restart rsyncd
+systemctl status rsyncd
+
+
+echo "systemctl start xinetd" >> /etc/rc.local
+sed -i "s/^server:.*$/server: $THIS_HOST_IP/g" /etc/cobbler/settings
+sed -i "s/^next_server:.*$/next_server: $THIS_HOST_IP/g" /etc/cobbler/settings
+
+#pxe安装 只允许一次，防止误操作
+sed -i "s/pxe_just_once: 0/pxe_just_once: 1/g" /etc/cobbler/settings
+
+echo "set the node root password"
+openssl passwd -1 -salt 'www.openstack.net' 'rootroot'
+
+sed -i "s/default_password_crypted.*/default_password_crypted:\ \'\$1\$www.open\$lhBwdHJ4.ZPUJ0WOXTtTt.\'/g" /etc/cobbler/settings
+
+echo "set the cobbler config file"
+sed -i "s/manage_rsync: 0/manage_rsync: 1/g" /etc/cobbler/settings
+sed -i "s/manage_dhcp: 0/manage_dhcp: 1/g" /etc/cobbler/settings
+
+echo "set the dhcp.template"
+sed -i "s/subnet .* netmask 255.255.255.0/subnet $THIS_NETWORK_SEGMENT netmask $THIS_HOST_MASK/g" /etc/cobbler/dhcp.template
+
+sed -i "s/range dynamic-bootp.*$/range dynamic-bootp        $DHCP_BEGIN_RANGE $DHCP_END_RANGE;/g" /etc/cobbler/dhcp.template
+
+sed -i "s/option routers.*$/option routers             $THIS_HOST_ROUTER;/g" /etc/cobbler/dhcp.template
+
+sed -i "s/option domain-name-servers.*$/option domain-name-servers $THIS_HOST_DNS;/g" /etc/cobbler/dhcp.template
+
+echo "get the loader"
+if [ ! -f "/var/lib/cobbler/loaders/menu.c32" ]; then
+  cobbler get-loaders
+fi
+
+
+echo "restart cobbler service"
+systemctl start cobblerd
+
+echo "cobbler check"
+cobbler check
+
+OPENSTACK_ISO_MOUNT_DIR=/var/www/html/os/Openstack-node
+if [ ! -d "$OPENSTACK_ISO_MOUNT_DIR" ]; then
+  mkdir -pv "$OPENSTACK_ISO_MOUNT_DIR"
+fi
+
+OPENSTACK_ISO_FILE=/usr/local/src/Openstack-node-x86_64.iso
+if [ ! -f "$OPENSTACK_ISO_FILE" ]; then
+  echo "unzip the Openstack-node-x86_64.tar.gz" 
+  tar zxvf /usr/local/src/Openstack-node-x86_64.tar.gz -C /usr/local/src/
+fi
+
+echo "mount the node iso"
+mount -o loop /usr/local/src/Openstack-node-x86_64.iso /var/www/html/os/Openstack-node
+
+echo "begin upload the node iso"
+cobbler import --path=/var/www/html/os/Openstack-node  --name=Openstack-node-x86_64  --arch=x86_64
+
+
+echo "cobbler sync"
+cobbler sync
+
+echo "config the ks file"
+cobbler profile edit --name=Openstack-node-x86_64 --distro=Openstack-node-x86_64 --kickstart=/var/lib/cobbler/kickstarts/openstack-node-common.ks
+cobbler profile add --name=Openstack-node-cinder-store-x86_64 --distro=Openstack-node-x86_64 --kickstart=/var/lib/cobbler/kickstarts/openstack-node-cinder-store.ks
+
+systemctl restart dhcpd
+systemctl status dhcpd
+systemctl stop dhcpd
+
+echo "create the openstack repo"
+OPENSTACK_RPM_DIR=/var/www/html/openstackrpmrepo/
+if [ ! -d "$OPENSTACK_RPM_DIR" ]; then
+  tar zxvf /var/www/html/openstackrpm.tar.gz -C /var/www/html/ ;
+  createrepo /var/www/html/openstackrpmrepo/ ;
+fi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

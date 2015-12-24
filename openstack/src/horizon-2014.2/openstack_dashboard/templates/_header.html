@@ -1,0 +1,154 @@
+{% load branding i18n %}
+{% load url from future %}
+{% load context_selection %}
+
+<h1 class="brand"><a href="{% site_branding_link %}" style="margin-top:15px;">{% site_branding %}</a></h1>
+
+<div class="context-box">
+  {% with request.user.username as username %}
+  {% if username == 'appradmin' or username == 'auditadmin' or username == 'sysadmin' or username == 'admin' %}
+  <div class="context-selection topmenu {% if request.path == '/dashboard/admin/' %}active{% endif %}">
+	<a href="/dashboard/admin/">
+	  <img src="/static/dashboard/img/nav/Top_Admin.png">
+	  <br/>
+	  <span>{% trans 'Admin' %}</span>
+	</a>
+  </div>
+  {% else %}
+  <div class="context-selection topmenu {% if request.path == '/dashboard/project/' %}active{% endif %}">
+	<a href="/dashboard/project/">
+	  <img src="/static/dashboard/img/nav/Top_Projects.png">
+	  <br/>
+	  <span>{% trans 'Projects' %}</span>
+	</a>
+  </div>
+  {% endif %}
+  {% if username == 'appradmin' or username == 'auditadmin' or username == 'sysadmin' or username == 'admin' %}
+  <div class="context-selection topmenu {% if request.path == '/dashboard/admin/instances/' %}active{% endif %}">
+	<a href="/dashboard/admin/instances/">
+	  <img src="/static/dashboard/img/nav/Top_Instance.png">
+	  <br/>
+	  <span>{% trans 'Instance' %}</span>
+	</a>
+  </div>
+  {% else %}
+  <div class="context-selection topmenu {% if request.path == '/dashboard/project/instances/' %}active{% endif %}">
+	<a href="/dashboard/project/instances/">
+	  <img src="/static/dashboard/img/nav/Top_Instance.png">
+	  <br/>
+	  <span>{% trans 'Instance' %}</span>
+	</a>
+  </div>
+  {% endif %}
+  {% if username == 'appradmin' or username == 'auditadmin' or username == 'sysadmin' or username == 'admin' %}
+  <div class="context-selection topmenu {% if request.path == '/dashboard/admin/networks/' %}active{% endif %}">
+	<a href="/dashboard/admin/networks/">
+	  <img src="/static/dashboard/img/nav/Top_Networks.png">
+	  <br/>
+	  <span>{% trans 'Networks' %}</span>
+	</a>
+  </div>
+  {% else %}
+  <div class="context-selection topmenu {% if request.path == '/dashboard/project/networks/' %}active{% endif %}">
+	<a href="/dashboard/project/networks/">
+	  <img src="/static/dashboard/img/nav/Top_Networks.png">
+	  <br/>
+	  <span>{% trans 'Networks' %}</span>
+	</a>
+  </div>
+  {% endif %}
+  {% if username == 'appradmin' or username == 'auditadmin' or username == 'sysadmin' or username == 'admin' %}
+  <div class="context-selection topmenu {% if request.path == '/dashboard/admin/volumes/' %}active{% endif %}">
+	<a href="/dashboard/admin/volumes/">
+	  <img src="/static/dashboard/img/nav/Top_Volume.png">
+	  <br/>
+	  <span>{% trans 'Volume' %}</span>
+	</a>
+  </div>
+  {% else %}
+  <div class="context-selection topmenu {% if request.path == '/dashboard/project/volumes/' %}active{% endif %}">
+	<a href="/dashboard/project/volumes/">
+	  <img src="/static/dashboard/img/nav/Top_Volume.png">
+	  <br/>
+	  <span>{% trans 'Volume' %}</span>
+	</a>
+  </div>
+  {% endif %}
+  {% if username == 'sysadmin' or username == 'admin' %}
+  <div class="context-selection topmenu {% if request.path == '/dashboard/admin/monitorstatus/' %}active{% endif %}">
+	<a href="/dashboard/admin/monitorstatus/">
+	  <img src="/static/dashboard/img/nav/Top_Monitor.png">
+	  <br/>
+	  <span>{% trans 'Monitor' %}</span>
+	</a>
+  </div>
+  {% endif %}
+  {% if username == 'auditadmin' or username == 'admin' %}
+  <div class="context-selection topmenu {% if request.path == '/dashboard/admin/log/' %}active{% endif %}">
+	<a href="/dashboard/admin/log/">
+	  <img src="/static/dashboard/img/nav/Top_Log.png">
+	  <br/>
+	  <span>{% trans 'Log' %}</span>
+	</a>
+  </div>
+  {% endif %}
+  {% if username == 'appradmin' %}
+  <div class="context-selection topmenu {% if request.path == '/dashboard/admin/checkhost/' %}active{% endif %}">
+	<a href="/dashboard/admin/checkhost/">
+	  <img src="/static/dashboard/img/nav/Top_Check.png">
+	  <br/>
+	  <span>{% trans 'Check' %}</span>
+	</a>
+  </div>
+  {% endif %}
+  {% if username != 'appradmin' and username != 'auditadmin' and username != 'sysadmin' and username != 'admin' %}
+  <div class="context-selection topmenu {% if request.path == '/dashboard/project/applyhost/' %}active{% endif %}">
+	<a href="/dashboard/project/applyhost/">
+	  <img src="/static/dashboard/img/nav/Top_Apply.png">
+	  <br/>
+	  <span>{% trans 'Apply' %}</span>
+	</a>
+  </div>
+  {% endif %}
+  {% endwith %}
+</div><!-- end of context-box -->
+
+
+
+<div id="user_info" class="pull-right" style="margin-top:20px;">
+  <div id="profile_editor_switcher" class="dropdown switcher_bar" tabindex='1'>
+    <a class="dropdown-toggle" data-toggle="dropdown" href="#profile_editor_switcher">
+      <div>{{ request.user.username }}</div>
+    </a>
+    <ul id="editor_list" class="dropdown-menu">
+      <li class='divider'></li>
+      <li><a href="{% url 'horizon:settings:user:index' %}">{% trans "Settings" %}</a></li>
+      {% if False and HORIZON_CONFIG.help_url %}
+        <li><a href="{{ HORIZON_CONFIG.help_url }}" target="_new">{% trans "Help" %}</a></li>
+      {% endif %}
+    </ul>
+  </div>
+
+  <a href="{% url 'logout' %}">{% trans "Sign Out" %}</a>
+  {% include "horizon/common/_region_selector.html" %}
+</div>
+
+<div class="context-box" style="float:right;margin-top:20px;">
+  <div class="dropdown context-selection" style="display:inline-block">
+    <button class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown" 
+    		style="color:#fff;background:transparent;border:0;">
+        {% show_overview %}
+    </button>
+    <div class="dropdown-menu">
+      <div class="context-lists">
+        {% show_domain_list %}
+        {% show_project_list %}
+        {% show_region_list %}
+      </div>
+      <div class="footer disabled">
+        <span class="glyphicon glyphicon-cog"></span>
+        {% trans "Filter selections" %}
+      </div>
+    </div><!-- end of dropdown-menu -->
+  </div><!-- end of context-selection -->
+</div>

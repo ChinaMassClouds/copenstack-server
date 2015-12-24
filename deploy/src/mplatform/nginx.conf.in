@@ -1,0 +1,121 @@
+# For more information on configuration, see:
+#   * Official English Documentation: http://nginx.org/en/docs/
+#   * Official Russian Documentation: http://nginx.org/ru/docs/
+
+user  nginx;
+worker_processes  1;
+
+error_log  /var/log/nginx/error.log;
+#error_log  /var/log/nginx/error.log  notice;
+#error_log  /var/log/nginx/error.log  info;
+
+pid        /run/nginx.pid;
+#proxy_temp_path   /usr/local/nginx/proxy_temp_dir 1 2;
+#proxy_cache_path  /usr/local/nginx/proxy_cache_dir/cache1  levels=1:2 keys_zone=cache1:100m inactive=1d max_size=10g;
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    #keepalive_timeout  0;
+    keepalive_timeout  65;
+
+    #gzip  on;
+
+    index   index.html index.htm;
+
+    # Load modular configuration files from the /etc/nginx/conf.d directory.
+    # See http://nginx.org/en/docs/ngx_core_module.html#include
+    # for more information.
+    #include /etc/nginx/conf.d/*.conf;
+	
+    client_max_body_size 5120m;
+    client_body_timeout 1200;
+    lingering_close always;
+	
+    uwsgi_connect_timeout 300;
+    uwsgi_read_timeout 300;
+    uwsgi_send_timeout 300;
+	
+    proxy_connect_timeout 300;
+    proxy_read_timeout 300;
+    proxy_send_timeout 300;
+
+    server {
+        listen       $proxy_port default_server;
+        server_name  $host;
+        root         /usr/share/nginx/html;
+
+        #charset koi8-r;
+
+        #access_log  /var/log/nginx/host.access.log  main;
+
+        # Load configuration files for the default server block.
+        include /etc/nginx/default.d/*.conf;
+
+        location / {
+        root $path;
+        uwsgi_pass 127.0.0.1:$port;
+        include uwsgi_params;
+        access_log off;
+        }
+
+        location ~* ^/static/(css|img|js)/.*$ {
+	                root $path;
+	                expires 30d;
+	                break;
+	        }
+
+        location ~/static  {
+         root $path;
+           }
+
+        location /ssh {
+             rewrite ^/ssh/(.*) /$1 break;
+             proxy_pass http://127.0.0.1:4200;
+             proxy_read_timeout 90;
+             #proxy_pass http://localhost:4200;
+             #proxy_set_header Host $host;
+             #proxy_set_header X-Real-IP $remote_addr;
+             #proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+        # for httpd
+        location /pubs {
+             rewrite ^/(.*) /$1 break;
+             proxy_pass http://127.0.0.1:6660/pubs/;
+             proxy_read_timeout 90;
+        }
+        # pictures for httpd
+        location /icons {
+             rewrite ^/(.*) /$1 break;
+             proxy_pass http://127.0.0.1:6660/icons/;
+             proxy_read_timeout 90;
+        }
+
+        # redirect server error pages to the static page /40x.html
+        #
+        error_page  404              /404.html;
+        location = /40x.html {
+        }
+
+        # redirect server error pages to the static page /50x.html
+        #
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+        }
+    }
+}

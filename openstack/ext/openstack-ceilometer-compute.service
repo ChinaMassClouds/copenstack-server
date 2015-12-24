@@ -1,0 +1,12 @@
+[Unit]
+Description=OpenStack ceilometer compute agent
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=ceilometer
+ExecStart=/usr/bin/ceilometer-agent-compute --logfile /var/log/ceilometer/compute.log
+
+[Install]
+WantedBy=multi-user.target
+
